@@ -15,5 +15,5 @@ fn main() {
     let url = &args[1];
     let body = utils::download_html(&url);
     println!("{:?}", utils::get_title(&body));
-    println!("{:?}", utils::get_read_now_link(&body));
+    println!("{:?}", utils::get_read_now_link(&body, &url));
 }
