@@ -26,12 +26,10 @@ pub fn get_title(html: &String) -> &str {
 }
 
 pub fn get_read_now_link(html: &String) -> String {
-    return html.split("\n").into_iter().filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now")).collect();
+    let line : String = html.split("\n").into_iter().filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now")).collect();
+    return get_substring_between(&line, "href=\"", "\"").to_string();
+    // return line
 }
 
 fn get_substring_between<'a>(str: &'a str, start: &'a str, end: &'a str) -> &'a str {
-    let start_bytes = str.find(start).unwrap_or(0) + start.len(); 
-    let end_bytes = str.find(end).unwrap_or(str.len()); 
-    let result = &str[start_bytes..end_bytes]; 
-    return result;
 }
