@@ -15,25 +15,23 @@ pub fn download_html(url: &String) -> String {
     }
 }
 
-pub fn get_title(html: &String) -> String {
+pub fn get_title(html: &String) -> &str {
     let in_tag = get_substring_between(&html, "<title>", "</title>");   
     if in_tag.contains("|") {
         let end = in_tag.find("|").unwrap_or_default();
-        return in_tag[..end].to_string();
+        return &in_tag[..end].trim();
     } else {
-        return in_tag;
+        return &in_tag.trim();
     }
 }
 
 pub fn get_read_now_link(html: &String) -> String {
-    let lines = html.split("\n");
-    return lines.into_iter().filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now")).collect();
-    // return filtered_lines;
+    return html.split("\n").into_iter().filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now")).collect();
 }
 
-fn get_substring_between(str: &String, start: &str, end: &str) -> String {
-let start_bytes = str.find(start).unwrap_or(0); 
-let end_bytes = str.find(end).unwrap_or(str.len()); 
-let result = &str[start_bytes..end_bytes]; 
-    return result.to_string();
+fn get_substring_between<'a>(str: &'a str, start: &'a str, end: &'a str) -> &'a str {
+    let start_bytes = str.find(start).unwrap_or(0) + start.len(); 
+    let end_bytes = str.find(end).unwrap_or(str.len()); 
+    let result = &str[start_bytes..end_bytes]; 
+    return result;
 }
