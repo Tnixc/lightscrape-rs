@@ -1,9 +1,9 @@
 mod utils;
 
+use crate::utils::*;
 use std::env;
 
-// use crate::utils::{download_html, get_next_link, parse_content};
-use crate::utils::*;
+extern crate html2md;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -23,12 +23,14 @@ fn main() {
     let chap1body = download_html(&n);
     fn recurse(url: &str, limit: u64) -> () {
         println!("{:?}", url);
+        let body = &download_html(&url.to_string());
+        let next = get_next_link(body, &url.to_string());
+        println!("{:?}", html2md::parse_html(parse_initial(body)));
         if limit == 0 {
             println!("limit reached");
             return;
         }
-        let next = get_next_link(&download_html(&url.to_string()), &url.to_string());
         recurse(&next, limit - 1);
     }
-    recurse(&get_next_link(&chap1body, &url), 10)
+    recurse(&get_next_link(&chap1body, &url), 2)
 }

@@ -14,8 +14,7 @@ pub fn download_html(url: &String) -> String {
     };
 }
 
-pub fn get_title(html: &String) -> &str {
-    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default();
+pub fn get_title(html: &String) -> &str { let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default();
     if in_tag.contains("|") {
         let end = in_tag.find("|").unwrap_or_default();
         return &in_tag[..end].trim();
@@ -79,19 +78,10 @@ pub fn get_next_link(html: &String, url: &String) -> String {
     }
 }
 
-// pub fn parse_content(html: &str) -> &str {
-//    let z = get_substring_between(&html, "itemprop=\"description\"", "chapternav");
-//    return z.unwrap();
-// }
-
-// fn get_substring_between<'a>(str: &'a str, start: &'a str, end: &'a str) -> &'a str {
-//     if !str.contains(start) || !str.contains(end) {
-//         panic!("Could not get substring between {} and {}", start, end);
-//     }
-//     return str.split(start).collect::<Vec<&str>>()[1]
-//         .split(end)
-//         .collect::<Vec<&str>>()[0];
-// }
+pub fn parse_initial(html: &str) -> &str {
+   let z = get_substring_between(&html, "itemprop=\"description\"", "chapternav");
+   return z.unwrap();
+}
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {
     if !text.contains(start) || !text.contains(end) {
