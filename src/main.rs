@@ -2,7 +2,7 @@ mod utils;
 
 use std::env;
 
-use crate::utils::{download_html, get_next_link};
+use crate::utils::{download_html, get_next_link, parse_content};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -19,5 +19,7 @@ fn main() {
     println!("{:?}", utils::get_title(&body));
     let n = utils::get_read_now_link(&body, &url);
     println!("{:?}", n);
-    println!("{:?}", get_next_link(&download_html(&n), &url))
+    let z = download_html(&n);
+    println!("{:?}", get_next_link(&z, &url));
+    println!("{:?}", parse_content(&z));
 }
