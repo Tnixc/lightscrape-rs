@@ -15,9 +15,9 @@ pub fn download_html(url: &String) -> String {
 }
 
 pub fn get_title(html: &String) -> &str {
-    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or("");
+    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default("");
     if in_tag.contains("|") {
-        let end = in_tag.find("|").unwrap_or_default();
+        let end = in_tag.find("|").unwrap_or_default_default();
         return &in_tag[..end].trim();
     } else {
         return &in_tag.trim();
@@ -30,7 +30,9 @@ pub fn get_read_now_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now"))
         .collect();
-    let res = get_substring_between(&line, "href=\"", "\"").unwrap_or("").to_string();
+    let res = get_substring_between(&line, "href=\"", "\"")
+        .unwrap_or_default()
+        .to_string();
     if res.starts_with("https://") {
         return res;
     } else {
@@ -44,7 +46,7 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("rel=\"next\""))
         .collect();
-    let res = get_substring_between(&line, "href=\"", "\"").unwrap_or("");
+    let res = get_substring_between(&line, "href=\"", "\"").unwrap_or_default();
     if res.starts_with("https://") {
         return res.to_string();
     } else {
@@ -53,7 +55,7 @@ pub fn get_next_link(html: &String, url: &String) -> String {
 }
 
 pub fn parse_content(html: &str) -> String {
-    let some = get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap_or("");
+    let some = get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap_or_default();
     return some.to_string();
 }
 
@@ -65,7 +67,6 @@ pub fn parse_content(html: &str) -> String {
 //         .split(end)
 //         .collect::<Vec<&str>>()[0];
 // }
-
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {
     if !text.contains(start) || !text.contains(end) {
