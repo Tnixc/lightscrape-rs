@@ -38,9 +38,26 @@ pub fn get_read_now_link(html: &String, url: &String) -> String {
     }
 }
 
+pub fn get_next_link(html: &String, url: &String) -> String{
+    let line : String = html.split("\n").into_iter().filter(|&z| z.contains("rel=\"next\"")).collect();
+    let res = get_substring_between(&line, "href=\"", "\"");
+        if res.starts_with("https://") {
+        return res.to_string();
+    } else {
+        return "https://".to_string() + url.split("/").collect::<Vec<&str>>()[2] + res;
+    }
+
+}
+
+// fn parse_content(html :&str) -> String {
+//     
+// }
+
 fn get_substring_between<'a>(str: &'a str, start: &'a str, end: &'a str) -> &'a str {
     if !str.contains(start) || !str.contains(end) {
         panic!("Could not get substring between {} and {}", start, end);
     }
-    return str.split(start).collect::<Vec<&str>>()[1].split(end).collect::<Vec<&str>>()[0];
+    return str.split(start).collect::<Vec<&str>>()[1]
+        .split(end)
+        .collect::<Vec<&str>>()[0];
 }
