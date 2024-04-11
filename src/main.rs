@@ -3,7 +3,7 @@ mod utils;
 use std::env;
 
 // use crate::utils::{download_html, get_next_link, parse_content};
-use crate::utils::{*};
+use crate::utils::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -16,11 +16,19 @@ fn main() {
         return;
     }
     let url = &args[1];
-    let body = download_html(&url);
-    println!("{:?}", utils::get_title(&body));
-    let n = get_read_now_link(&body, &url);
+    let body_main = download_html(&url);
+    println!("{:?}", utils::get_title(&body_main));
+    let n = get_read_now_link(&body_main, &url);
     println!("{:?}", n);
-    let z = download_html(&n.to_string());
-    println!("{:?}", get_next_link(&z, &url));
-    // println!("{:?}", parse_content(&z));
+    let chap1body = download_html(&n);
+    fn recurse(url: &str, limit: u64) -> () {
+        println!("{:?}", url);
+        if limit == 0 {
+            println!("limit reached");
+            return;
+        }
+        let next = get_next_link(&download_html(&url.to_string()), &url.to_string());
+        recurse(&next, limit - 1);
+    }
+    recurse(&get_next_link(&chap1body, &url), 10)
 }

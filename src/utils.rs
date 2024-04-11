@@ -31,9 +31,16 @@ pub fn get_read_now_link(html: &String, url: &String) -> String {
         .filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now"))
         .collect();
 
-    let binding = get_substring_between(&line, "href=", "class")
-        .unwrap_or_default()
-        .replace("\"", "");
+    let binding: String;
+    if line.contains("class") {
+        binding = get_substring_between(&line, "href=", "class")
+            .unwrap_or_default()
+            .replace("\"", "");
+    } else {
+        binding = get_substring_between(&line, "href=", "title")
+            .unwrap_or_default()
+            .replace("\"", "");
+    }
     let res = binding;
 
     if res.starts_with("https://") {
@@ -50,14 +57,25 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("rel=\"next\""))
         .collect();
-    let res = get_substring_between(&line, "href=\"", "\"")
-        .unwrap_or_default()
-        .replace("\"", "");
+
+    let binding: String;
+    if line.contains("class") {
+        binding = get_substring_between(&line, "href=", "class")
+            .unwrap_or_default()
+            .replace("\"", "")
+            .replace("><i", "");
+    } else {
+        binding = get_substring_between(&line, "href=", "title")
+            .unwrap_or_default()
+            .replace("\"", "");
+    }
+    let res = binding;
 
     if res.starts_with("https://") {
-        return res.to_string();
+        return res.trim().to_string();
     } else {
-        return "https://".to_string() + url.split("/").collect::<Vec<&str>>()[2] + res.as_str();
+        let domain = url.split("/").collect::<Vec<&str>>()[2];
+        return "https://".to_string() + domain + res.trim();
     }
 }
 
