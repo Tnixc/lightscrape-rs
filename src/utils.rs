@@ -32,7 +32,7 @@ pub fn get_read_now_link(html: &String, url: &String) -> String {
         .collect();
 
     let binding: String;
-    if line.contains("class") {
+    if line.find("title") < line.find("class") {
         binding = get_substring_between(&line, "href=", "class")
             .unwrap_or_default()
             .replace("\"", "");
@@ -59,7 +59,7 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         .collect();
 
     let binding: String;
-    if line.contains("class") {
+    if line.find("title") < line.find("class") {
         binding = get_substring_between(&line, "href=", "class")
             .unwrap_or_default()
             .replace("\"", "")
@@ -95,7 +95,7 @@ pub fn get_next_link(html: &String, url: &String) -> String {
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {
     if !text.contains(start) || !text.contains(end) {
-        return None;
+        return Some(text);
     }
     let first = text.find(start)?;
     let last = text[first..].find(end)?;
