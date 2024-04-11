@@ -15,9 +15,9 @@ pub fn download_html(url: &String) -> String {
 }
 
 pub fn get_title(html: &String) -> &str {
-    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default("");
+    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default();
     if in_tag.contains("|") {
-        let end = in_tag.find("|").unwrap_or_default_default();
+        let end = in_tag.find("|").unwrap_or_default();
         return &in_tag[..end].trim();
     } else {
         return &in_tag.trim();
@@ -30,8 +30,9 @@ pub fn get_read_now_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now"))
         .collect();
-    let res = get_substring_between(&line, "href=\"", "\"")
+    let res = get_substring_between(&line, "href=", " title")
         .unwrap_or_default()
+        .replace("\"", "")
         .to_string();
     if res.starts_with("https://") {
         return res;
@@ -46,16 +47,19 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("rel=\"next\""))
         .collect();
-    let res = get_substring_between(&line, "href=\"", "\"").unwrap_or_default();
+    let res = get_substring_between(&line, "href=", " title")
+        .unwrap_or_default()
+        .replace("\"", "");
     if res.starts_with("https://") {
         return res.to_string();
     } else {
-        return "https://".to_string() + url.split("/").collect::<Vec<&str>>()[2] + res;
+        return "https://".to_string() + url.split("/").collect::<Vec<&str>>()[2] + res.as_str();
     }
 }
 
 pub fn parse_content(html: &str) -> String {
-    let some = get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap_or_default();
+    let some =
+        get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap_or_default();
     return some.to_string();
 }
 
@@ -70,9 +74,9 @@ pub fn parse_content(html: &str) -> String {
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {
     if !text.contains(start) || !text.contains(end) {
-        panic!("Could not get substring between {} and {}", start, end);
+        return None;
     }
     let first = text.find(start)?;
-    let last = text[first..].rfind(end)?;
-    Some(&text[first + start.len()..last])
+    let last = text[first..].find(end)?;
+    Some(&text[first + start.len()..last + first])
 }
