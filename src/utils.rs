@@ -30,14 +30,17 @@ pub fn get_read_now_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("readchapterbtn") || z.contains("Read Now"))
         .collect();
-    let res = get_substring_between(&line, "href=", " title")
+
+    let binding = get_substring_between(&line, "href=", "class")
         .unwrap_or_default()
-        .replace("\"", "")
-        .to_string();
+        .replace("\"", "");
+    let res = binding;
+
     if res.starts_with("https://") {
-        return res;
+        return res.trim().to_string();
     } else {
-        return "https://".to_string() + url.split("/").collect::<Vec<&str>>()[2] + res.as_str();
+        let domain = url.split("/").collect::<Vec<&str>>()[2];
+        return "https://".to_string() + domain + res.trim();
     }
 }
 
@@ -47,9 +50,10 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         .into_iter()
         .filter(|&z| z.contains("rel=\"next\""))
         .collect();
-    let res = get_substring_between(&line, "href=", " title")
+    let res = get_substring_between(&line, "href=\"", "\"")
         .unwrap_or_default()
         .replace("\"", "");
+
     if res.starts_with("https://") {
         return res.to_string();
     } else {
@@ -57,11 +61,10 @@ pub fn get_next_link(html: &String, url: &String) -> String {
     }
 }
 
-pub fn parse_content(html: &str) -> String {
-    let some =
-        get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap_or_default();
-    return some.to_string();
-}
+// pub fn parse_content(html: &str) -> &str {
+//    let z = get_substring_between(&html, "itemprop=\"description\"", "chapternav");
+//    return z.unwrap();
+// }
 
 // fn get_substring_between<'a>(str: &'a str, start: &'a str, end: &'a str) -> &'a str {
 //     if !str.contains(start) || !str.contains(end) {
@@ -78,5 +81,5 @@ pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) ->
     }
     let first = text.find(start)?;
     let last = text[first..].find(end)?;
-    Some(&text[first + start.len()..last + first])
+    return Some(&text[first + start.len()..last + first]);
 }
