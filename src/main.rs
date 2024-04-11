@@ -3,8 +3,6 @@ mod utils;
 use crate::utils::*;
 use std::env;
 
-extern crate html2md;
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -25,7 +23,7 @@ fn main() {
         println!("{:?}", url);
         let body = &download_html(&url.to_string());
         let next = get_next_link(body, &url.to_string());
-        println!("{:?}", html2md::parse_html(parse_initial(body)));
+        println!("{:?}", parse_content(body));
         if limit == 0 {
             println!("limit reached");
             return;

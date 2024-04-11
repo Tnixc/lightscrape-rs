@@ -1,4 +1,6 @@
 use core::panic;
+
+use regex::Regex;
 extern crate reqwest;
 
 pub fn download_html(url: &String) -> String {
@@ -14,7 +16,8 @@ pub fn download_html(url: &String) -> String {
     };
 }
 
-pub fn get_title(html: &String) -> &str { let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default();
+pub fn get_title(html: &String) -> &str {
+    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default();
     if in_tag.contains("|") {
         let end = in_tag.find("|").unwrap_or_default();
         return &in_tag[..end].trim();
@@ -77,10 +80,16 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         return "https://".to_string() + domain + res.trim();
     }
 }
+pub fn parse_content(html: &str) -> String {
+    fn parse_initial(html: &str) -> String {
+        let z = get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap();
+        let pattern = Regex::new(r"<script>.*?</script>").unwrap();
+        let res = pattern.replace_all(z, "");
+        return res.to_string();
+    }
 
-pub fn parse_initial(html: &str) -> &str {
-   let z = get_substring_between(&html, "itemprop=\"description\"", "chapternav");
-   return z.unwrap();
+    let res = html2md::parse_html(&parse_initial(html));
+    return res;
 }
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {

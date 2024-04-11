@@ -459,6 +459,7 @@ name = "lightscrape-rs"
 version = "0.1.0"
 dependencies = [
  "html2md",
+ "regex",
  "reqwest",
 ]
 
