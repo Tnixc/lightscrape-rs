@@ -88,8 +88,8 @@ pub fn parse_content(html: &str) -> String {
         return res.to_string();
     }
 
-    let res = html2md::parse_html(&parse_initial(html));
-    return res;
+    let binding = html2md::parse_html(&parse_initial(html));
+    return binding.trim().trim_start_matches(">").replace("*This chapter upload first at **Novel Fire***", "").to_string();
 }
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {
