@@ -89,7 +89,12 @@ pub fn parse_content(html: &str) -> String {
     }
 
     let binding = html2md::parse_html(&parse_initial(html));
-    return binding.trim().trim_start_matches(">").replace("*This chapter upload first at **Novel Fire***", "").to_string();
+    return binding
+        .trim()
+        .trim_start_matches("\\>")
+        .trim()
+        .replace("*This chapter upload first at **Novel Fire***", "")
+        .to_string();
 }
 
 pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) -> Option<&'a str> {
