@@ -105,3 +105,9 @@ pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) ->
     let last = text[first..].find(end)?;
     return Some(&text[first + start.len()..last + first]);
 }
+
+pub fn get_cover_url(html: &str) -> String {
+    let line = get_substring_between(html, "<figure", "</figure>").unwrap_or_default();
+    let url = get_substring_between(line, "data-src=", "alt").unwrap_or_default();
+    return url.replace("\"","").trim().to_string();
+}

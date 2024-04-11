@@ -28,15 +28,26 @@ fn main() {
         let _ = fs::create_dir("./res");
     }
 
+    let cover_url = get_cover_url(&main_body);
+
+    let mut file = std::fs::File::create("cover.jpg").unwrap();
+    reqwest::blocking::get(cover_url)
+        .unwrap()
+        .copy_to(&mut file)
+        .unwrap();
+
     let chapter_1_url = get_read_now_link(&main_body, &main_url);
 
-    fn recurse(url: &str, limit: i32, i : i32) -> () {
+    fn recurse(url: &str, limit: i32, i: i32) -> () {
         println!("{:?}", url);
         let body = &download_html(&url.to_string());
         let next = get_next_link(body, &url.to_string());
-        // println!("{:?}", parse_content(body));
+
         let _ = fs::File::create("./res/".to_string() + i.to_string().as_str() + ".md");
-        let _ = fs::write("./res/".to_string() + i.to_string().as_str() + ".md", parse_content(body));
+        let _ = fs::write(
+            "./res/".to_string() + i.to_string().as_str() + ".md",
+            parse_content(body),
+        );
         if limit <= 0 {
             println!("limit reached");
             return;
