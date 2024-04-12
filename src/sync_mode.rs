@@ -1,5 +1,9 @@
 use crate::utils::*;
 
+use futures::future::*;
+use std::fs;
+use std::path::Path;
+
 pub fn get_read_now_link(html: &String, url: &String) -> String {
     let line: String = html
         .split("\n")
@@ -49,8 +53,41 @@ pub fn get_next_link(html: &String, url: &String) -> String {
 
     if res.starts_with("https://") {
         return res.trim().to_string();
-    } else {
+    } else if !res.contains("javascript") {
         let domain = url.split("/").collect::<Vec<&str>>()[2];
         return "https://".to_string() + domain + res.trim();
+    } else {
+        return "".to_string();
     }
+}
+
+pub async fn sync_main(main_url: String) -> () {
+    let main_body = download_html(&main_url).await;
+    let title = get_title(&main_body);
+    println!("Title: {:?}", title);
+
+    if !Path::new("./res").exists() {
+        let _ = fs::create_dir("./res");
+    }
+
+    let chapter_1_url = get_read_now_link(&main_body, &main_url);
+
+    fn recurse(url: String, i: i32) -> BoxFuture<'static, i32> {
+        async move {
+            println!("{:?}", url);
+            let body = &download_html(&url.to_string()).await;
+            let next = get_next_link(body, &url.to_string());
+            if next.is_empty() {
+                return i;
+            }
+            let _ = fs::File::create("./res/".to_string() + i.to_string().as_str() + ".md");
+            let _ = fs::write(
+                "./res/".to_string() + i.to_string().as_str() + ".md",
+                parse_content(body),
+            );
+            return recurse(next, i + 1).await;
+        }
+        .boxed()
+    }
+    recurse(chapter_1_url, 1).await;
 }

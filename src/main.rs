@@ -9,6 +9,7 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::thread::sleep;
+use sync_mode::*;
 use tokio::task;
 use utils::*;
 
@@ -34,19 +35,27 @@ async fn main() {
         .unwrap();
 
     println!("{:?}", selection);
+
+    if selection == 1 {
+        let main_body = download_html(&main_url).await;
+
+        let cover_url = get_cover_url(&main_body);
+
+        let mut image_file = std::fs::File::create("cover.jpg").unwrap();
+        let image_data = reqwest::get(cover_url).await.unwrap().bytes();
+        let _ = image_file.write_all(&image_data.await.unwrap());
+    
+        sync_main(main_url).await;
+        return;
+    }
+
     let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
-
     if !Path::new("./res").exists() {
         let _ = fs::create_dir("./res");
     }
 
-    let cover_url = get_cover_url(&main_body);
-
-    let mut image_file = std::fs::File::create("cover.jpg").unwrap();
-    let image_data = reqwest::get(cover_url).await.unwrap().bytes();
-    let _ = image_file.write_all(&image_data.await.unwrap());
     let contents_url_1 = get_contents_link(&main_body, &main_url);
 
     let master: Vec<String> = get_contents_list(&contents_url_1).await;
