@@ -62,10 +62,16 @@ pub fn get_contents_list(url: &String) -> Vec<String> {
     return vec;
 }
 
-pub fn get_list_links(url: &String) -> Vec<[String; 2]> {
+#[derive(Debug)]
+pub struct Chapter {
+    title: String,
+    link: String,
+}
+
+pub fn get_list_links(url: &String) -> Vec<Chapter> {
     let res = download_html(&url);
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
-    let n: Vec<[String; 2]> = reduced
+    let n: Vec<Chapter> = reduced
         .split("<span")
         .into_iter()
         .map(|z| {
@@ -79,9 +85,10 @@ pub fn get_list_links(url: &String) -> Vec<[String; 2]> {
                 .replace("\"", "")
                 .trim()
                 .to_owned();
-            return [link, title];
+
+            return Chapter { title, link };
         })
-        .collect::<Vec<[String; 2]>>();
+        .collect::<Vec<Chapter>>();
 
     return n;
 }
