@@ -40,6 +40,7 @@ pub async fn get_page_links(url: &String) -> Vec<Chapter> {
             return Chapter { title, link, index };
         })
         .collect::<Vec<Chapter>>();
+
     n.pop();
     return n;
 }
@@ -70,7 +71,7 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
         let res = download_html(&next_url).await;
-        if res.contains("Page Not Found") {
+        if res.contains("Page Not Found") || get_substring_between(&res, "class=\"chapter-list", "</ul>").unwrap_or_default().len() < 10 {
             break;
         }
         println!("{:?}", index);
