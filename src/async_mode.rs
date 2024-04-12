@@ -11,7 +11,7 @@ pub struct Chapter {
     pub index: String,
 }
 
-pub async fn worker(chapter: Chapter, tx: mpsc::Sender<bool>) -> () {
+pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> () {
     let body = &download_html(&chapter.link).await;
     let path;
     if chapter.index == "" {
@@ -21,7 +21,7 @@ pub async fn worker(chapter: Chapter, tx: mpsc::Sender<bool>) -> () {
     }
     let _ = tokio::fs::File::create(&path).await;
     let _ = tokio::fs::write(&path, parse_content(body)).await;
-    tx.send(true).await.unwrap();
+    tx.send(counta.clone()).await.unwrap();
     return;
 }
 

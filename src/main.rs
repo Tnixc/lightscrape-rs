@@ -90,33 +90,38 @@ async fn main() {
     );
 
     let mut handles = Vec::new();
-    let mut counta = 0;
-    let (tx, mut rx) = mpsc::channel::<bool>(final_list.len());
+    let mut counta: u64 = 0;
+    let (tx, mut rx) = mpsc::channel::<u64>(final_list.len());
 
     for z in final_list.into_iter() {
         let tx = tx.clone();
-        handles.push(task::spawn(async {
-            worker(z, tx).await;
+
+        handles.push(task::spawn(async move {
+            worker(z, tx, &counta).await;
         }));
+
         sleep(Duration::from_millis(10));
         counta += 1;
         bar.set_message(format!("Starting task for chapter {}", counta.to_string()));
         bar.inc(1);
     }
-    bar.inc(1);
-    for _ in 0..counta {
-        let _ = rx.recv().await.unwrap();
-        results.set_message(format!("Finished task for chapter {}", counta.to_string()));
-        results.inc(1);
-    }
 
+    bar.set_position(counta);
     bar.finish_with_message(format!(
         "Started {} download tasks in {}",
         counta,
         HumanDuration(start.elapsed())
     ));
 
+    for _ in 0..counta {
+        let this = rx.recv().await.unwrap();
+        results.set_message(format!("Finished task for chapter {}", this));
+        results.inc(1);
+    }
+
     futures::future::join_all(handles).await;
+
+    results.set_position(counta);
     results.finish_with_message(format!(
         "Finished {} download tasks in {}",
         counta,
