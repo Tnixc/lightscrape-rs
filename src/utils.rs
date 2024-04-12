@@ -44,6 +44,24 @@ pub fn get_contents_link(html: &str, url: &str) -> String {
     }
 }
 
+pub fn get_contents_list(url: String) -> Vec<String> {
+    let mut index = 2;
+    let mut vec = Vec::new();
+    vec.push(url.clone());
+
+    while true {
+        let next_url = url.clone() + "?page=" + index.to_string().as_str();
+        let res = download_html(&next_url);
+        if res.contains("Page Not Found") {
+            break;
+        }
+        println!("{:?}", index);
+        vec.push(next_url);
+        index += 1;
+    }
+    return vec;
+}
+
 pub fn get_read_now_link(html: &String, url: &String) -> String {
     let line: String = html
         .split("\n")

@@ -32,8 +32,9 @@ fn main() {
         .copy_to(&mut file)
         .unwrap();
 
-    let cl = get_contents_link(&main_body, &main_url);
-    println!("{:?}", cl);
+    let contents_url = get_contents_link(&main_body, &main_url);
+
+    println!("{:?}",get_contents_list(contents_url));
 
     // let chapter_1_url = get_read_now_link(&main_body, &main_url);
 
