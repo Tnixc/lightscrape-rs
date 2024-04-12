@@ -65,12 +65,7 @@ async fn main() {
     }
 
     let contents_url_1 = get_contents_link(&main_body, &main_url);
-
-    let master: Vec<String> = get_contents_list(&contents_url_1).await;
-    let mut final_list: Vec<Chapter> = Vec::new();
-    for page in master.iter() {
-        final_list.append(&mut get_page_links(page).await);
-    }
+    let final_list: Vec<Chapter> = get_contents_list(&contents_url_1).await;
 
     let bar = ProgressBar::new(final_list.len() as u64);
     bar.set_style(

@@ -25,8 +25,8 @@ pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> ()
     return;
 }
 
-pub async fn get_page_links(url: &String) -> Vec<Chapter> {
-    let res = download_html(&url).await;
+pub async fn get_page_links(url: &String, body: &String) -> Vec<Chapter> {
+    let res = body;
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
     let mut n: Vec<Chapter> = reduced
         .split("</li>")
@@ -91,9 +91,10 @@ pub fn get_contents_link(html: &str, url: &str) -> String {
     }
 }
 
-pub async fn get_contents_list(url: &String) -> Vec<String> {
+pub async fn get_contents_list(url: &String) -> Vec<Chapter> {
     let mut index = 2;
     let mut vec = Vec::new();
+    let mut vec_of_body = Vec::new();
     vec.push(url.clone());
 
     let started = Instant::now();
@@ -122,6 +123,8 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
             break;
         }
         vec.push(next_url);
+        vec_of_body.push(res);
+
         spinner.set_message(format!("Downloading page {}", index.to_string()));
         index += 1;
     }
@@ -130,5 +133,11 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
         index,
         HumanDuration(started.elapsed())
     ));
-    return vec;
+
+    let mut final_list: Vec<Chapter> = Vec::new();
+
+    for page_body in vec_of_body.iter() {
+        final_list.append(&mut get_page_links(url, page_body).await);
+    }
+    return final_list;
 }
