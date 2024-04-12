@@ -46,15 +46,17 @@ async fn main() {
         final_list.append(&mut get_page_links(page).await);
     }
     println!("Total chapters: {:?}, {:?}", final_list.len(), final_list);
+    let mut handles = Vec::new();
     for z in final_list.into_iter() {
-        task::spawn(async {
+        handles.push(task::spawn(async {
             worker(z).await;
-        });
-        sleep(std::time::Duration::from_millis(50));
+        }));
+        sleep(std::time::Duration::from_millis(20));
     }
+    futures::future::join_all(handles).await;
 }
 async fn worker(chapter: Chapter) -> () {
-    println!("Started {:?}", chapter.index);
+    println!("Started {:?} - {:?}", chapter.index, chapter.title);
     let body = &download_html(&chapter.link).await;
     let path;
     if chapter.index == "" {
@@ -62,7 +64,8 @@ async fn worker(chapter: Chapter) -> () {
     } else {
         path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
     }
-    let _ = fs::File::create(&path);
-    let _ = fs::write(&path, parse_content(body));
-    println!("Ended {:?}", chapter.index);
+    let _ = tokio::fs::File::create(&path).await.expect_err("msg err create");
+    let _ = tokio::fs::write(&path, parse_content(body)).await.expect_err("msg err write");
+    println!("Finished {:?} - {:?}", chapter.index, chapter.title);
+    return;
 }
