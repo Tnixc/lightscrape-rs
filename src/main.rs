@@ -46,19 +46,14 @@ async fn main() {
     for page in master.iter() {
         final_list.append(&mut get_page_links(page));
     }
-    // println!("{:?}", final_list);
 
-    let mut handles = Vec::<task::JoinHandle<()>>::new();
-    for z in final_list.iter() {
-        let handle = task::spawn(worker(z.clone()));
-        handles.push(handle);
+    for z in final_list.into_iter() {
+        task::spawn(async {worker(z).await;});
     }
     
-    futures::future::join_all(handles).await;   
 
 }
-
-async fn worker(chapter: &Chapter) -> () {
+async fn worker(chapter: Chapter) -> () {
     println!("Started {:?}", chapter.index);
     let body = &download_html(&chapter.link);
     let path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
