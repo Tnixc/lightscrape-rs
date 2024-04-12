@@ -1,8 +1,6 @@
 use crate::utils::*;
 
 use futures::future::*;
-use std::fs;
-use std::path::Path;
 
 pub fn get_read_now_link(html: &String, url: &String) -> String {
     let line: String = html
@@ -61,15 +59,7 @@ pub fn get_next_link(html: &String, url: &String) -> String {
     }
 }
 
-pub async fn sync_main(main_url: String) -> () {
-    let main_body = download_html(&main_url).await;
-    let title = get_title(&main_body);
-    println!("Title: {:?}", title);
-
-    if !Path::new("./res").exists() {
-        let _ = fs::create_dir("./res");
-    }
-
+pub async fn sync_main(main_url: &String, main_body: &String) -> () {
     let chapter_1_url = get_read_now_link(&main_body, &main_url);
 
     fn recurse(url: String, i: i32) -> BoxFuture<'static, i32> {

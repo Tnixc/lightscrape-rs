@@ -7,6 +7,25 @@ pub struct Chapter {
     pub index: String,
 }
 
+pub async fn worker(chapter: Chapter) -> () {
+    println!("Started {:?} - {:?}", chapter.index, chapter.title);
+    let body = &download_html(&chapter.link).await;
+    let path;
+    if chapter.index == "" {
+        path = "./res/".to_string() + &chapter.title + ".md";
+    } else {
+        path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
+    }
+    let _ = tokio::fs::File::create(&path)
+        .await
+        .expect_err("msg err create");
+    let _ = tokio::fs::write(&path, parse_content(body))
+        .await
+        .expect_err("msg err write");
+    println!("Finished {:?} - {:?}", chapter.index, chapter.title);
+    return;
+}
+
 pub async fn get_page_links(url: &String) -> Vec<Chapter> {
     let res = download_html(&url).await;
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
