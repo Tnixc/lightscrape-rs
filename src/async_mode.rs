@@ -7,7 +7,7 @@ pub struct Chapter {
     pub index: String,
 }
 
-pub fn get_list_links(url: &String) -> Vec<Chapter> {
+pub fn get_page_links(url: &String) -> Vec<Chapter> {
     let res = download_html(&url);
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
     let mut n: Vec<Chapter> = reduced

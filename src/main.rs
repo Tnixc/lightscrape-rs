@@ -6,9 +6,11 @@ use async_mode::*;
 use std::env;
 use std::fs;
 use std::path::Path;
+use tokio::task;
 use utils::*;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         println!("Please provide a url!");
@@ -38,20 +40,29 @@ fn main() {
     let contents_url_1 = get_contents_link(&main_body, &main_url);
 
     let master: Vec<String> = get_contents_list(&contents_url_1);
-    for i in master.iter() {
-        println!("{:?}", i);
-        let sublist = get_list_links(i);
-        // println!("{:?}", thing)
-        for item in sublist.iter() {
-            worker(item);
-        }
-    }
 
-    fn worker(chapter: &Chapter) -> () {
-        let body = &download_html(&chapter.link);
-        let path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
-        let _ = fs::File::create(&path);
-        let _ = fs::write(&path, parse_content(body));
-        println!("{:?}", chapter.index);
+    let mut final_list: Vec<Chapter> = Vec::new();
+
+    for page in master.iter() {
+        final_list.append(&mut get_page_links(page));
     }
+    // println!("{:?}", final_list);
+
+    let mut handles = Vec::<task::JoinHandle<()>>::new();
+    for z in final_list.iter() {
+        let handle = task::spawn(worker(z.clone()));
+        handles.push(handle);
+    }
+    
+    futures::future::join_all(handles).await;   
+
+}
+
+async fn worker(chapter: &Chapter) -> () {
+    println!("Started {:?}", chapter.index);
+    let body = &download_html(&chapter.link);
+    let path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
+    let _ = fs::File::create(&path);
+    let _ = fs::write(&path, parse_content(body));
+    println!("Ended {:?}", chapter.index);
 }
