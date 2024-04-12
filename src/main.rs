@@ -1,13 +1,19 @@
+mod async_mode;
+mod sync_mode;
 mod utils;
 
+use async_mode::*;
 use std::env;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
+use std::thread::sleep;
+use tokio::task;
 use utils::*;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut limit = i32::MAX;
     if args.len() < 2 {
         println!("Please provide a url!");
         return;
@@ -17,10 +23,7 @@ fn main() {
     }
 
     let main_url = &args[1];
-    if args.len() == 3 {
-        limit = args[2].parse::<i32>().unwrap()
-    }
-    let main_body = download_html(&main_url);
+    let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
 
@@ -30,30 +33,39 @@ fn main() {
 
     let cover_url = get_cover_url(&main_body);
 
-    let mut file = std::fs::File::create("cover.jpg").unwrap();
-    reqwest::blocking::get(cover_url)
-        .unwrap()
-        .copy_to(&mut file)
-        .unwrap();
+    let mut image_file = std::fs::File::create("cover.jpg").unwrap();
+    let image_data = reqwest::get(cover_url).await.unwrap().bytes();
+    let _ = image_file.write_all(&image_data.await.unwrap());
+    let contents_url_1 = get_contents_link(&main_body, &main_url);
 
-    let chapter_1_url = get_read_now_link(&main_body, &main_url);
+    let master: Vec<String> = get_contents_list(&contents_url_1).await;
+    println!("Total pages: {:?}, {:?}", master.len(), master);
 
-    fn recurse(url: &str, limit: i32, i: i32) -> () {
-        println!("{:?}", url);
-        let body = &download_html(&url.to_string());
-        let next = get_next_link(body, &url.to_string());
-
-        let _ = fs::File::create("./res/".to_string() + i.to_string().as_str() + ".md");
-        let _ = fs::write(
-            "./res/".to_string() + i.to_string().as_str() + ".md",
-            parse_content(body),
-        );
-        if limit <= 0 {
-            println!("limit reached");
-            return;
-        }
-        recurse(&next, limit - 1, i + 1);
+    let mut final_list: Vec<Chapter> = Vec::new();
+    for page in master.iter() {
+        final_list.append(&mut get_page_links(page).await);
     }
-
-    recurse(&chapter_1_url, limit - 1, 1)
+    println!("Total chapters: {:?}, {:?}", final_list.len(), final_list);
+    let mut handles = Vec::new();
+    for z in final_list.into_iter() {
+        handles.push(task::spawn(async {
+            worker(z).await;
+        }));
+        sleep(std::time::Duration::from_millis(20));
+    }
+    futures::future::join_all(handles).await;
+}
+async fn worker(chapter: Chapter) -> () {
+    println!("Started {:?} - {:?}", chapter.index, chapter.title);
+    let body = &download_html(&chapter.link).await;
+    let path;
+    if chapter.index == "" {
+        path = "./res/".to_string() + &chapter.title + ".md";
+    } else {
+        path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
+    }
+    let _ = tokio::fs::File::create(&path).await.expect_err("msg err create");
+    let _ = tokio::fs::write(&path, parse_content(body)).await.expect_err("msg err write");
+    println!("Finished {:?} - {:?}", chapter.index, chapter.title);
+    return;
 }

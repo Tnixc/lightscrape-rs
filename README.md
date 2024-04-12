@@ -1,6 +1,8 @@
 
 # To-do:
 
-- [ ] Use content page for parallel downloads
+- [x] Use content page for parallel downloads
 - [ ] epub writing
-- [ ] cover source
+- [x] cover source
+- [ ] More graceful ui
+- [ ] Flags for sync/async, rate limit
