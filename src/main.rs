@@ -38,21 +38,18 @@ fn main() {
 
     let contents_urls = get_contents_link(&main_body, &main_url);
 
-    println!("{:?}", get_contents_list(&contents_urls));
+    let master: Vec<String> = get_contents_list(&contents_urls);
 
-    println!("{:?}", get_list_links(&contents_urls)[0]);
+    println!("{:?}", get_list_links(&contents_urls));
 
-    // let chapter_1_url = get_read_now_link(&main_body, &main_url);
-
-    fn worker(url: &str, chapter: i32) -> () {
+    fn worker(url: &str, chapter: Chapter) -> () {
         println!("{:?}", url);
-        let body = &download_html(&url.to_string());
-        let next = get_next_link(body, &url.to_string());
+        // let body = &download_html(&url.to_string());
 
-        let _ = fs::File::create("./res/".to_string() + chapter.to_string().as_str() + ".md");
-        let _ = fs::write(
-            "./res/".to_string() + chapter.to_string().as_str() + ".md",
-            parse_content(body),
-        );
+        // let _ = fs::File::create("./res/".to_string() + chapter.to_string().as_str() + ".md");
+        // let _ = fs::write(
+        //     "./res/".to_string() + chapter.to_string().as_str() + ".md",
+        //     parse_content(body),
+        // );
     }
 }

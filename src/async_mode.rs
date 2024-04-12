@@ -4,30 +4,43 @@ use crate::utils::*;
 pub struct Chapter {
     title: String,
     link: String,
+    index: String,
 }
 
 pub fn get_list_links(url: &String) -> Vec<Chapter> {
     let res = download_html(&url);
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
-    let n: Vec<Chapter> = reduced
+    let mut n: Vec<Chapter> = reduced
         .split("<span")
         .into_iter()
         .map(|z| {
-            let link = get_substring_between(&z, "href=", "title")
+            let mut link = get_substring_between(&z, "href=", "title")
                 .unwrap()
                 .replace("\"", "")
                 .trim()
                 .to_owned();
+            if link.starts_with("https://") {
+                link = link.trim().to_string();
+            } else {
+                let domain = url.split("/").collect::<Vec<&str>>()[2];
+                link = "https://".to_string() + domain + link.trim();
+            }
+
             let title = get_substring_between(&z, "title=", ">")
                 .unwrap()
                 .replace("\"", "")
                 .trim()
                 .to_owned();
+            let index = get_substring_between(&z, "data-orderno=", ">")
+                .unwrap()
+                .replace("\"", "")
+                .trim()
+                .to_owned();
 
-            return Chapter { title, link };
+            return Chapter { title, link, index };
         })
         .collect::<Vec<Chapter>>();
-
+    n.pop();
     return n;
 }
 
