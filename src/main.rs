@@ -63,13 +63,11 @@ async fn main() {
     let contents_url_1 = get_contents_link(&main_body, &main_url);
 
     let master: Vec<String> = get_contents_list(&contents_url_1).await;
-    println!("Total pages: {:?}, {:?}", master.len(), master);
 
     let mut final_list: Vec<Chapter> = Vec::new();
     for page in master.iter() {
         final_list.append(&mut get_page_links(page).await);
     }
-    println!("Total chapters: {:?}, {:?}", final_list.len(), final_list);
     let mut handles = Vec::new();
     for z in final_list.into_iter() {
         handles.push(task::spawn(async {

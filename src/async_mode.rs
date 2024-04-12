@@ -16,12 +16,8 @@ pub async fn worker(chapter: Chapter) -> () {
     } else {
         path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
     }
-    let _ = tokio::fs::File::create(&path)
-        .await
-        .expect_err("msg err create");
-    let _ = tokio::fs::write(&path, parse_content(body))
-        .await
-        .expect_err("msg err write");
+    let _ = tokio::fs::File::create(&path).await;
+    let _ = tokio::fs::write(&path, parse_content(body)).await;
     println!("Finished {:?} - {:?}", chapter.index, chapter.title);
     return;
 }
@@ -96,7 +92,7 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
     let mut index = 2;
     let mut vec = Vec::new();
     vec.push(url.clone());
-    println!("1");
+    println!("1"); //TODO
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
         let res = download_html(&next_url).await;

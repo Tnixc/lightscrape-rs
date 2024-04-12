@@ -64,7 +64,6 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
 
     fn recurse(url: String, i: i32) -> BoxFuture<'static, i32> {
         async move {
-            println!("{:?}", url);
             let body = &download_html(&url.to_string()).await;
             let next = get_next_link(body, &url.to_string());
             if next.is_empty() {
