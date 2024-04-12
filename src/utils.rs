@@ -26,6 +26,24 @@ pub fn get_title(html: &String) -> &str {
     }
 }
 
+pub fn get_contents_link(html: &str, url: &str) -> String {
+    let line: String = html
+        .split("\n")
+        .into_iter()
+        .filter(|&z| z.contains("chapter-latest-container"))
+        .collect();
+
+    let binding = get_substring_between(&line, "href=", ">").unwrap_or_default();
+    let res = binding.replace("\"", "");
+
+    if res.starts_with("https://") {
+        return res.trim().to_string();
+    } else {
+        let domain = url.split("/").collect::<Vec<&str>>()[2];
+        return "https://".to_string() + domain + res.trim();
+    }
+}
+
 pub fn get_read_now_link(html: &String, url: &String) -> String {
     let line: String = html
         .split("\n")
@@ -80,6 +98,7 @@ pub fn get_next_link(html: &String, url: &String) -> String {
         return "https://".to_string() + domain + res.trim();
     }
 }
+
 pub fn parse_content(html: &str) -> String {
     fn parse_initial(html: &str) -> String {
         let z = get_substring_between(&html, "itemprop=\"description\"", "chapternav").unwrap();
@@ -109,5 +128,5 @@ pub fn get_substring_between<'a>(text: &'a str, start: &'a str, end: &'a str) ->
 pub fn get_cover_url(html: &str) -> String {
     let line = get_substring_between(html, "<figure", "</figure>").unwrap_or_default();
     let url = get_substring_between(line, "data-src=", "alt").unwrap_or_default();
-    return url.replace("\"","").trim().to_string();
+    return url.replace("\"", "").trim().to_string();
 }

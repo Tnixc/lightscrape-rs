@@ -7,7 +7,6 @@ use utils::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut limit = i32::MAX;
     if args.len() < 2 {
         println!("Please provide a url!");
         return;
@@ -17,9 +16,6 @@ fn main() {
     }
 
     let main_url = &args[1];
-    if args.len() == 3 {
-        limit = args[2].parse::<i32>().unwrap()
-    }
     let main_body = download_html(&main_url);
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
@@ -36,24 +32,20 @@ fn main() {
         .copy_to(&mut file)
         .unwrap();
 
-    let chapter_1_url = get_read_now_link(&main_body, &main_url);
+    let cl = get_contents_link(&main_body, &main_url);
+    println!("{:?}", cl);
 
-    fn recurse(url: &str, limit: i32, i: i32) -> () {
+    // let chapter_1_url = get_read_now_link(&main_body, &main_url);
+
+    fn worker(url: &str, chapter: i32) -> () {
         println!("{:?}", url);
         let body = &download_html(&url.to_string());
         let next = get_next_link(body, &url.to_string());
 
-        let _ = fs::File::create("./res/".to_string() + i.to_string().as_str() + ".md");
+        let _ = fs::File::create("./res/".to_string() + chapter.to_string().as_str() + ".md");
         let _ = fs::write(
-            "./res/".to_string() + i.to_string().as_str() + ".md",
+            "./res/".to_string() + chapter.to_string().as_str() + ".md",
             parse_content(body),
         );
-        if limit <= 0 {
-            println!("limit reached");
-            return;
-        }
-        recurse(&next, limit - 1, i + 1);
     }
-
-    recurse(&chapter_1_url, limit - 1, 1)
 }
