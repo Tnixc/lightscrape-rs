@@ -44,12 +44,12 @@ pub fn get_contents_link(html: &str, url: &str) -> String {
     }
 }
 
-pub fn get_contents_list(url: String) -> Vec<String> {
+pub fn get_contents_list(url: &String) -> Vec<String> {
     let mut index = 2;
     let mut vec = Vec::new();
     vec.push(url.clone());
 
-    while true {
+    loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
         let res = download_html(&next_url);
         if res.contains("Page Not Found") {
@@ -60,6 +60,27 @@ pub fn get_contents_list(url: String) -> Vec<String> {
         index += 1;
     }
     return vec;
+}
+
+pub fn get_list_links(url: &String) -> Vec<String> {
+    let res = download_html(&url);
+    let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
+    let n: Vec<&str> = reduced
+        .split("title")
+        .into_iter()
+        .map(|z| {
+            println!("{:?}", z);
+            return z;
+        })
+        .collect::<Vec<&str>>();
+    // get_substring_between(&z, "href=", ">")
+    // .unwrap()
+    // .replace("\"", "")
+    // .trim()
+    // .to_string()
+    // .collect::<Vec<String>>();
+    // println!("{:?}", n);
+    return Vec::new();
 }
 
 pub fn get_read_now_link(html: &String, url: &String) -> String {
