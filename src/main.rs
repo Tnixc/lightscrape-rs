@@ -46,18 +46,22 @@ async fn main() {
         final_list.append(&mut get_page_links(page).await);
     }
     println!("Total chapters: {:?}, {:?}", final_list.len(), final_list);
-
     for z in final_list.into_iter() {
         task::spawn(async {
             worker(z).await;
         });
-        sleep(std::time::Duration::from_millis(100));
+        sleep(std::time::Duration::from_millis(50));
     }
 }
 async fn worker(chapter: Chapter) -> () {
     println!("Started {:?}", chapter.index);
     let body = &download_html(&chapter.link).await;
-    let path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
+    let path;
+    if chapter.index == "" {
+        path = "./res/".to_string() + &chapter.title + ".md";
+    } else {
+        path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
+    }
     let _ = fs::File::create(&path);
     let _ = fs::write(&path, parse_content(body));
     println!("Ended {:?}", chapter.index);

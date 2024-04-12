@@ -11,7 +11,7 @@ pub async fn get_page_links(url: &String) -> Vec<Chapter> {
     let res = download_html(&url).await;
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
     let mut n: Vec<Chapter> = reduced
-        .split("<span")
+        .split("</li>")
         .into_iter()
         .map(|z| {
             let mut link = get_substring_between(&z, "href=", "title")
@@ -31,11 +31,21 @@ pub async fn get_page_links(url: &String) -> Vec<Chapter> {
                 .replace("\"", "")
                 .trim()
                 .to_owned();
-            let index = get_substring_between(&z, "data-orderno=", ">")
-                .unwrap()
-                .replace("\"", "")
-                .trim()
-                .to_owned();
+            let index;
+            if z.contains("data-orderno=") {
+                index = get_substring_between(&z, "data-orderno=", ">")
+                    .unwrap()
+                    .replace("\"", "")
+                    .trim()
+                    .to_owned();
+            } else if z.contains("Chapter") {
+                index = get_substring_between(&z, "Chapter", ":")
+                    .unwrap_or_default()
+                    .trim()
+                    .to_owned();
+            } else {
+                index = "".to_string();
+            }
 
             return Chapter { title, link, index };
         })
@@ -71,7 +81,12 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
         let res = download_html(&next_url).await;
-        if res.contains("Page Not Found") || get_substring_between(&res, "class=\"chapter-list", "</ul>").unwrap_or_default().len() < 10 {
+        if res.contains("Page Not Found")
+            || get_substring_between(&res, "class=\"chapter-list", "</ul>")
+                .unwrap_or_default()
+                .len()
+                < 10
+        {
             break;
         }
         println!("{:?}", index);
