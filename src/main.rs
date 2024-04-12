@@ -4,6 +4,7 @@ mod utils;
 
 use async_mode::*;
 use console::style;
+use console::Term;
 use dialoguer::{Input, Select};
 use std::fs;
 use std::io::Write;
@@ -34,7 +35,8 @@ async fn main() {
         .interact()
         .unwrap();
 
-    println!("{:?}", selection);
+    let term = Term::stdout();
+    let _ = term.clear_screen();
 
     if selection == 1 {
         let main_body = download_html(&main_url).await;
@@ -44,7 +46,7 @@ async fn main() {
         let mut image_file = std::fs::File::create("cover.jpg").unwrap();
         let image_data = reqwest::get(cover_url).await.unwrap().bytes();
         let _ = image_file.write_all(&image_data.await.unwrap());
-    
+
         sync_main(main_url).await;
         return;
     }

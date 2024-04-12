@@ -80,11 +80,9 @@ pub async fn sync_main(main_url: String) -> () {
             if next.is_empty() {
                 return i;
             }
-            let _ = fs::File::create("./res/".to_string() + i.to_string().as_str() + ".md");
-            let _ = fs::write(
-                "./res/".to_string() + i.to_string().as_str() + ".md",
-                parse_content(body),
-            );
+            let path = "./res/".to_string() + "[" + i.to_string().as_str() + "] " + ".md";
+            let _ = tokio::fs::File::create(&path).await;
+            let _ = tokio::fs::write(&path, parse_content(body)).await;
             return recurse(next, i + 1).await;
         }
         .boxed()
