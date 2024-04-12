@@ -3,7 +3,8 @@ mod sync_mode;
 mod utils;
 
 use async_mode::*;
-use std::env;
+use console::style;
+use dialoguer::{Input, Select};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
@@ -13,16 +14,26 @@ use utils::*;
 
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        println!("Please provide a url!");
-        return;
-    } else if !&args[1].starts_with("https://") {
-        println!("Please provide a valid url! (including https://)");
-        return;
-    }
+    let mode = vec![style("Async(Recommended)").green(), style("Sync").blue()];
+    let selection = Select::new()
+        .with_prompt(style("Choose a mode").bold().to_string())
+        .items(&mode)
+        .default(0)
+        .interact()
+        .unwrap();
+    let main_url = Input::new()
+        .with_prompt("Paste your link(has to be from the main page)")
+        .validate_with(|z: &String| {
+            if z.starts_with("https://") {
+                Ok(())
+            } else {
+                Err("Link doesn't start with https://")
+            }
+        })
+        .interact()
+        .unwrap();
 
-    let main_url = &args[1];
+    println!("{:?}", selection);
     let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
@@ -64,8 +75,12 @@ async fn worker(chapter: Chapter) -> () {
     } else {
         path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
     }
-    let _ = tokio::fs::File::create(&path).await.expect_err("msg err create");
-    let _ = tokio::fs::write(&path, parse_content(body)).await.expect_err("msg err write");
+    let _ = tokio::fs::File::create(&path)
+        .await
+        .expect_err("msg err create");
+    let _ = tokio::fs::write(&path, parse_content(body))
+        .await
+        .expect_err("msg err write");
     println!("Finished {:?} - {:?}", chapter.index, chapter.title);
     return;
 }
