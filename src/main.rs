@@ -1,8 +1,12 @@
+mod async_mode;
+mod sync_mode;
 mod utils;
 
+use async_mode::*;
 use std::env;
 use std::fs;
 use std::path::Path;
+use sync_mode::*;
 use utils::*;
 
 fn main() {
@@ -34,9 +38,9 @@ fn main() {
 
     let contents_urls = get_contents_link(&main_body, &main_url);
 
-    println!("{:?}",get_contents_list(&contents_urls));
+    println!("{:?}", get_contents_list(&contents_urls));
 
-    println!("{:?}",get_list_links(&contents_urls)[0]);
+    println!("{:?}", get_list_links(&contents_urls)[0]);
 
     // let chapter_1_url = get_read_now_link(&main_body, &main_url);
 
