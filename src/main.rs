@@ -6,6 +6,7 @@ use async_mode::*;
 use console::style;
 use console::Term;
 use dialoguer::{Input, Select};
+use dialoguer::theme::ColorfulTheme;
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
 use std::fs;
 use std::io::Write;
@@ -23,14 +24,14 @@ async fn main() {
     let term = Term::stdout();
     let _ = term.clear_screen();
 
-    let mode = vec![style("Async(Recommended)").green(), style("Sync").blue()];
-    let selection = Select::new()
+    let mode = vec![style("Async(Recommended)"), style("Sync")];
+    let selection = Select::with_theme(&ColorfulTheme::default())
         .with_prompt(style("Choose a mode").bold().to_string())
         .items(&mode)
         .default(0)
         .interact()
         .unwrap();
-    let main_url = Input::new()
+    let main_url = Input::with_theme(&ColorfulTheme::default())
         .with_prompt(
             style("Paste your link(has to be from the main page)")
                 .bold()
