@@ -6,16 +6,22 @@ use async_mode::*;
 use console::style;
 use console::Term;
 use dialoguer::{Input, Select};
+use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::thread::sleep;
+use std::time::Duration;
+use std::time::Instant;
 use sync_mode::*;
 use tokio::task;
 use utils::*;
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 8)]
 async fn main() {
+    let term = Term::stdout();
+    let _ = term.clear_screen();
+
     let mode = vec![style("Async(Recommended)").green(), style("Sync").blue()];
     let selection = Select::new()
         .with_prompt(style("Choose a mode").bold().to_string())
@@ -39,9 +45,6 @@ async fn main() {
         .interact()
         .unwrap();
 
-    let term = Term::stdout();
-    let _ = term.clear_screen();
-
     let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
@@ -63,17 +66,43 @@ async fn main() {
     let contents_url_1 = get_contents_link(&main_body, &main_url);
 
     let master: Vec<String> = get_contents_list(&contents_url_1).await;
-
     let mut final_list: Vec<Chapter> = Vec::new();
     for page in master.iter() {
         final_list.append(&mut get_page_links(page).await);
     }
+
+    let bar = ProgressBar::new(final_list.len() as u64);
+    bar.set_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed_precise}] [{bar:40.cyan/white}] {pos}/{len} {msg}")
+            .unwrap()
+            .progress_chars("#>_"),
+    );
+    let start = Instant::now();
+    let results = bar.clone();
+
+    results.set_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed_precise}] [{bar:40.green/white}] {pos}/{len} {msg}")
+            .unwrap()
+            .progress_chars("#>_"),
+    );
+
     let mut handles = Vec::new();
+    let mut counta = 0;
     for z in final_list.into_iter() {
         handles.push(task::spawn(async {
             worker(z).await;
         }));
-        sleep(std::time::Duration::from_millis(20));
+        sleep(Duration::from_millis(10));
+        counta += 1;
+        bar.set_message(format!("Starting task chapter {}", counta.to_string()));
+        bar.inc(1)
     }
+    bar.finish_with_message(format!(
+        "Start tasks for {} chapters in {}",
+        counta,
+        HumanDuration(start.elapsed())
+    ));
     futures::future::join_all(handles).await;
 }

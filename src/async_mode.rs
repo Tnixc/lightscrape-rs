@@ -1,4 +1,7 @@
 use crate::utils::*;
+use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
+use std::time::Duration;
+use std::time::Instant;
 
 #[derive(Debug)]
 pub struct Chapter {
@@ -8,7 +11,6 @@ pub struct Chapter {
 }
 
 pub async fn worker(chapter: Chapter) -> () {
-    println!("Started {:?} - {:?}", chapter.index, chapter.title);
     let body = &download_html(&chapter.link).await;
     let path;
     if chapter.index == "" {
@@ -18,7 +20,6 @@ pub async fn worker(chapter: Chapter) -> () {
     }
     let _ = tokio::fs::File::create(&path).await;
     let _ = tokio::fs::write(&path, parse_content(body)).await;
-    println!("Finished {:?} - {:?}", chapter.index, chapter.title);
     return;
 }
 
@@ -92,7 +93,21 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
     let mut index = 2;
     let mut vec = Vec::new();
     vec.push(url.clone());
-    println!("1"); //TODO
+
+    let started = Instant::now();
+    let spinner = ProgressBar::new_spinner();
+    spinner.enable_steady_tick(Duration::from_millis(80));
+    spinner.set_style(
+        ProgressStyle::with_template("{spinner:.yellow} {msg}")
+            .unwrap()
+            .tick_strings(&[
+                "[    ]", "[=   ]", "[==  ]", "[=== ]", "[====]", "[ ===]", "[  ==]", "[   =]",
+                "[    ]", "[   =]", "[  ==]", "[ ===]", "[====]", "[=== ]", "[==  ]", "[=   ]",
+                "[-==-]",
+            ]),
+    );
+    spinner.set_message(format!("Downloading page {}", (index - 1).to_string()));
+
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
         let res = download_html(&next_url).await;
@@ -104,9 +119,14 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
         {
             break;
         }
-        println!("{:?}", index);
         vec.push(next_url);
+        spinner.set_message(format!("Downloading page {}", index.to_string()));
         index += 1;
     }
+    spinner.finish_with_message(format!(
+        "Downloaded {} pages in {}",
+        index,
+        HumanDuration(started.elapsed())
+    ));
     return vec;
 }
