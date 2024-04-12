@@ -6,8 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+console = "0.15.8"
+dialoguer = "0.11.0"
 futures = "0.3.30"
 html2md = "0.2.14"
+indicatif = "0.17.8"
 regex = "1.10.4"
 reqwest = { version = "0.11", features = ["blocking"] }
 tokio = { version = "1.37.0", features = ["full"] }
