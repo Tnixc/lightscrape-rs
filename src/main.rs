@@ -14,6 +14,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 use sync_mode::*;
+use tokio::sync::mpsc;
 use tokio::task;
 use utils::*;
 
@@ -79,8 +80,8 @@ async fn main() {
             .progress_chars("#>_"),
     );
     let start = Instant::now();
-    let results = bar.clone();
 
+    let results = ProgressBar::new(final_list.len() as u64);
     results.set_style(
         ProgressStyle::default_bar()
             .template("[{elapsed_precise}] [{bar:40.green/white}] {pos}/{len} {msg}")
@@ -90,19 +91,35 @@ async fn main() {
 
     let mut handles = Vec::new();
     let mut counta = 0;
+    let (tx, mut rx) = mpsc::channel::<bool>(final_list.len());
+
     for z in final_list.into_iter() {
+        let tx = tx.clone();
         handles.push(task::spawn(async {
-            worker(z).await;
+            worker(z, tx).await;
         }));
         sleep(Duration::from_millis(10));
         counta += 1;
-        bar.set_message(format!("Starting task chapter {}", counta.to_string()));
-        bar.inc(1)
+        bar.set_message(format!("Starting task for chapter {}", counta.to_string()));
+        bar.inc(1);
     }
+    bar.inc(1);
+    for _ in 0..counta {
+        let _ = rx.recv().await.unwrap();
+        results.set_message(format!("Finished task for chapter {}", counta.to_string()));
+        results.inc(1);
+    }
+
     bar.finish_with_message(format!(
-        "Start tasks for {} chapters in {}",
+        "Started {} download tasks in {}",
         counta,
         HumanDuration(start.elapsed())
     ));
+
     futures::future::join_all(handles).await;
+    results.finish_with_message(format!(
+        "Finished {} download tasks in {}",
+        counta,
+        HumanDuration(start.elapsed())
+    ))
 }

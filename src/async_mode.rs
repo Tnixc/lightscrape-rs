@@ -2,6 +2,7 @@ use crate::utils::*;
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
 use std::time::Duration;
 use std::time::Instant;
+use tokio::sync::mpsc;
 
 #[derive(Debug)]
 pub struct Chapter {
@@ -10,7 +11,7 @@ pub struct Chapter {
     pub index: String,
 }
 
-pub async fn worker(chapter: Chapter) -> () {
+pub async fn worker(chapter: Chapter, tx: mpsc::Sender<bool>) -> () {
     let body = &download_html(&chapter.link).await;
     let path;
     if chapter.index == "" {
@@ -20,6 +21,7 @@ pub async fn worker(chapter: Chapter) -> () {
     }
     let _ = tokio::fs::File::create(&path).await;
     let _ = tokio::fs::write(&path, parse_content(body)).await;
+    tx.send(true).await.unwrap();
     return;
 }
 
@@ -98,7 +100,7 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
     let spinner = ProgressBar::new_spinner();
     spinner.enable_steady_tick(Duration::from_millis(80));
     spinner.set_style(
-        ProgressStyle::with_template("{spinner:.yellow} {msg}")
+        ProgressStyle::with_template("[{elapsed_precise}] {spinner:.yellow} {msg}")
             .unwrap()
             .tick_strings(&[
                 "[    ]", "[=   ]", "[==  ]", "[=== ]", "[====]", "[ ===]", "[  ==]", "[   =]",
@@ -124,7 +126,7 @@ pub async fn get_contents_list(url: &String) -> Vec<String> {
         index += 1;
     }
     spinner.finish_with_message(format!(
-        "Downloaded {} pages in {}",
+        "Downloaded {} content pages in {}",
         index,
         HumanDuration(started.elapsed())
     ));
