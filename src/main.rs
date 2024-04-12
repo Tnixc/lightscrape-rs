@@ -5,6 +5,7 @@ mod utils;
 use async_mode::*;
 use std::env;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use tokio::task;
 use utils::*;
@@ -21,7 +22,7 @@ async fn main() {
     }
 
     let main_url = &args[1];
-    let main_body = download_html(&main_url);
+    let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
 
@@ -31,31 +32,28 @@ async fn main() {
 
     let cover_url = get_cover_url(&main_body);
 
-    let mut file = std::fs::File::create("cover.jpg").unwrap();
-    reqwest::blocking::get(cover_url)
-        .unwrap()
-        .copy_to(&mut file)
-        .unwrap();
-
+    let mut image_file = std::fs::File::create("cover.jpg").unwrap();
+    let image_data = reqwest::get(cover_url).await.unwrap().bytes();
+    let _ = image_file.write_all(&image_data.await.unwrap());
     let contents_url_1 = get_contents_link(&main_body, &main_url);
 
-    let master: Vec<String> = get_contents_list(&contents_url_1);
+    let master: Vec<String> = get_contents_list(&contents_url_1).await;
 
     let mut final_list: Vec<Chapter> = Vec::new();
 
     for page in master.iter() {
-        final_list.append(&mut get_page_links(page));
+        final_list.append(&mut get_page_links(page).await);
     }
 
     for z in final_list.into_iter() {
-        task::spawn(async {worker(z).await;});
+        task::spawn(async {
+            worker(z).await;
+        });
     }
-    
-
 }
 async fn worker(chapter: Chapter) -> () {
     println!("Started {:?}", chapter.index);
-    let body = &download_html(&chapter.link);
+    let body = &download_html(&chapter.link).await;
     let path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
     let _ = fs::File::create(&path);
     let _ = fs::write(&path, parse_content(body));

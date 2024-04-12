@@ -7,8 +7,8 @@ pub struct Chapter {
     pub index: String,
 }
 
-pub fn get_page_links(url: &String) -> Vec<Chapter> {
-    let res = download_html(&url);
+pub async fn get_page_links(url: &String) -> Vec<Chapter> {
+    let res = download_html(&url).await;
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
     let mut n: Vec<Chapter> = reduced
         .split("<span")
@@ -62,14 +62,14 @@ pub fn get_contents_link(html: &str, url: &str) -> String {
     }
 }
 
-pub fn get_contents_list(url: &String) -> Vec<String> {
+pub async fn get_contents_list(url: &String) -> Vec<String> {
     let mut index = 2;
     let mut vec = Vec::new();
     vec.push(url.clone());
     println!("1");
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
-        let res = download_html(&next_url);
+        let res = download_html(&next_url).await;
         if res.contains("Page Not Found") {
             break;
         }

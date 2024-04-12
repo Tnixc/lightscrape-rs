@@ -1,15 +1,14 @@
 use core::panic;
 
 use regex::Regex;
-extern crate reqwest;
 
-pub fn download_html(url: &String) -> String {
-    let req = reqwest::blocking::get(url);
+pub async fn download_html(url: &String) -> String {
+    let req = reqwest::get(url).await;
     let res = match req {
         Ok(body) => body,
         Err(er) => panic!("Problem with downloading html: {:?}", er),
     };
-    let body = res.text();
+    let body = res.text().await;
     return match body {
         Ok(z) => z,
         Err(er) => panic!("Problem with converting body to text {:?}", er),
