@@ -2,9 +2,9 @@ use crate::utils::*;
 
 #[derive(Debug)]
 pub struct Chapter {
-    title: String,
-    link: String,
-    index: String,
+    pub title: String,
+    pub link: String,
+    pub index: String,
 }
 
 pub fn get_list_links(url: &String) -> Vec<Chapter> {
@@ -66,7 +66,7 @@ pub fn get_contents_list(url: &String) -> Vec<String> {
     let mut index = 2;
     let mut vec = Vec::new();
     vec.push(url.clone());
-
+    println!("1");
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
         let res = download_html(&next_url);

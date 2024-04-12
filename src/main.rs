@@ -6,7 +6,6 @@ use async_mode::*;
 use std::env;
 use std::fs;
 use std::path::Path;
-use sync_mode::*;
 use utils::*;
 
 fn main() {
@@ -36,20 +35,23 @@ fn main() {
         .copy_to(&mut file)
         .unwrap();
 
-    let contents_urls = get_contents_link(&main_body, &main_url);
+    let contents_url_1 = get_contents_link(&main_body, &main_url);
 
-    let master: Vec<String> = get_contents_list(&contents_urls);
+    let master: Vec<String> = get_contents_list(&contents_url_1);
+    for i in master.iter() {
+        println!("{:?}", i);
+        let sublist = get_list_links(i);
+        // println!("{:?}", thing)
+        for item in sublist.iter() {
+            worker(item);
+        }
+    }
 
-    println!("{:?}", get_list_links(&contents_urls));
-
-    fn worker(url: &str, chapter: Chapter) -> () {
-        println!("{:?}", url);
-        // let body = &download_html(&url.to_string());
-
-        // let _ = fs::File::create("./res/".to_string() + chapter.to_string().as_str() + ".md");
-        // let _ = fs::write(
-        //     "./res/".to_string() + chapter.to_string().as_str() + ".md",
-        //     parse_content(body),
-        // );
+    fn worker(chapter: &Chapter) -> () {
+        let body = &download_html(&chapter.link);
+        let path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
+        let _ = fs::File::create(&path);
+        let _ = fs::write(&path, parse_content(body));
+        println!("{:?}", chapter.index);
     }
 }
