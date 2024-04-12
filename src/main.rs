@@ -36,7 +36,7 @@ fn main() {
 
     println!("{:?}",get_contents_list(&contents_urls));
 
-    println!("{:?}",get_list_links(&contents_urls));
+    println!("{:?}",get_list_links(&contents_urls)[0]);
 
     // let chapter_1_url = get_read_now_link(&main_body, &main_url);
 

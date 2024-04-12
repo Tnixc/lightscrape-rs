@@ -62,25 +62,28 @@ pub fn get_contents_list(url: &String) -> Vec<String> {
     return vec;
 }
 
-pub fn get_list_links(url: &String) -> Vec<String> {
+pub fn get_list_links(url: &String) -> Vec<[String; 2]> {
     let res = download_html(&url);
     let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
-    let n: Vec<&str> = reduced
-        .split("title")
+    let n: Vec<[String; 2]> = reduced
+        .split("<span")
         .into_iter()
         .map(|z| {
-            println!("{:?}", z);
-            return z;
+            let link = get_substring_between(&z, "href=", "title")
+                .unwrap()
+                .replace("\"", "")
+                .trim()
+                .to_owned();
+            let title = get_substring_between(&z, "title=", ">")
+                .unwrap()
+                .replace("\"", "")
+                .trim()
+                .to_owned();
+            return [link, title];
         })
-        .collect::<Vec<&str>>();
-    // get_substring_between(&z, "href=", ">")
-    // .unwrap()
-    // .replace("\"", "")
-    // .trim()
-    // .to_string()
-    // .collect::<Vec<String>>();
-    // println!("{:?}", n);
-    return Vec::new();
+        .collect::<Vec<[String; 2]>>();
+
+    return n;
 }
 
 pub fn get_read_now_link(html: &String, url: &String) -> String {
