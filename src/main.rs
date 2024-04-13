@@ -68,8 +68,15 @@ async fn main() {
 
     if selection == 1 {
         sync_main(&main_url, &main_body).await;
-        let _ = generate_epub(title);
-        let _ = tokio::fs::remove_dir_all("./res/src/src").await;
+        let _ = generate_epub(title.clone());
+        // let _ = tokio::fs::remove_dir_all("./res/src/src").await;
+
+        println!(
+            "{}",
+            style(format!("\n Epub compiled at ./res/{}.epub", title))
+                .green()
+                .bold()
+        );
         return;
     }
 
@@ -146,5 +153,10 @@ async fn main() {
         HumanDuration(start.elapsed())
     ));
     let _ = generate_epub(title.clone());
-    println!("{}", style(format!("Epub compiled at ./res/{}.epub", title)).green().bold())
+    println!(
+        "{}",
+        style(format!("\n Epub compiled at ./res/{}.epub", title))
+            .green()
+            .bold()
+    )
 }

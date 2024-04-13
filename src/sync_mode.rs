@@ -1,7 +1,7 @@
 use crate::utils::*;
 use futures::future::*;
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
-use std::fs::File;
+
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::time::Duration;
