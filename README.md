@@ -10,6 +10,12 @@ The output will be at `./res/title.epub`
 cargo install --git https://github.com/Tnixc/lightscrape-rs
 ```
 
+
+
+https://github.com/Tnixc/lightscrape-rs/assets/85466117/8ea73f86-6d49-4d6c-8858-daadb18a853a
+
+
+
 # Compatible sites
 
 | Website                                            | Works          |
