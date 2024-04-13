@@ -81,24 +81,25 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
     );
 
     let _ = tokio::fs::File::create("./res/src/SUMMARY.md").await;
-    let summary_file = OpenOptions::new()
+    let mut summary_file = OpenOptions::new()
         .append(true)
         .open("./res/src/SUMMARY.md")
         .unwrap();
 
-    recurse(chapter_1_url, 1, spinner, summary_file).await;
+    let i = recurse(chapter_1_url, 1, spinner).await;
+    for z in 0..i {
+        let _ = summary_file.write(format!("- [Chapter {}](./src/{}.md)\n", z, z).as_bytes());
+    }
+
+    // TODO: I quite literally have no idea what is going on here.
+    let _ = tokio::fs::remove_dir("./res/src/src").await;
 
     let duration = started.elapsed();
     let human_readable = HumanDuration(duration);
     println!("Took {}", human_readable);
 }
 
-fn recurse(
-    url: String,
-    i: i32,
-    spinner: ProgressBar,
-    mut summary_file: File,
-) -> BoxFuture<'static, i32> {
+fn recurse(url: String, i: i32, spinner: ProgressBar) -> BoxFuture<'static, i32> {
     async move {
         let body = &download_html(&url.to_string()).await;
         let title = get_title(body);
@@ -108,7 +109,7 @@ fn recurse(
             spinner.finish_with_message(format!("Finished downloading {} chapters", i));
             return i;
         }
-        let path = "./".to_string() + i.to_string().as_str() + ".md";
+        let path = "./res/src/".to_string() + i.to_string().as_str() + ".md";
         let content = parse_content(body);
         let _ = tokio::fs::File::create(&path).await;
         let _ = tokio::fs::write(
@@ -117,11 +118,7 @@ fn recurse(
         )
         .await;
 
-        summary_file
-            .write(format!("- [Chapter {}]({})\n", i, path).as_bytes())
-            .expect("write failed");
-
-        return recurse(next, i + 1, spinner, summary_file).await;
+        return recurse(next, i + 1, spinner).await;
     }
     .boxed()
 }

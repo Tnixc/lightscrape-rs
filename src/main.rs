@@ -71,6 +71,8 @@ async fn main() {
 
     if selection == 1 {
         sync_main(&main_url, &main_body).await;
+        generate_epub();
+        // println!("EPUB generated: {:?}", output_file);
         return;
     }
 
@@ -126,6 +128,7 @@ async fn main() {
         .append(true)
         .open("./res/src/SUMMARY.md")
         .unwrap();
+
     for _ in 0..counta {
         let this = rx.recv().await.unwrap();
         results.set_message(format!("Finished task for chapter {}", this));
@@ -146,19 +149,4 @@ async fn main() {
         HumanDuration(start.elapsed())
     ));
 
-    let _ = tokio::fs::File::create("./res/book.toml").await;
-    tokio::fs::write(
-        "./res/book.toml",
-        format!(
-            "
-[book]
-title = \"{}\"
-[output.epub]
-cover-image = \"cover.jpg\"
-",
-            title
-        ),
-    )
-    .await
-    .unwrap();
 }

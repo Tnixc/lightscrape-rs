@@ -8,10 +8,14 @@ edition = "2021"
 [dependencies]
 console = "0.15.8"
 dialoguer = "0.11.0"
+epub = "2.1.1"
 futures = "0.3.30"
 html2md = "0.2.14"
 indicatif = "0.17.8"
+mdbook = "0.4.37"
+mdbook-epub = "0.4.37"
 regex = "1.10.4"
 reqwest = { version = "0.11", features = ["blocking"] }
+tempfile = "3.10.1"
 tokio = { version = "1.37.0", features = ["full"] }
 
