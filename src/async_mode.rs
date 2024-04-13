@@ -42,6 +42,7 @@ pub async fn get_page_links(url: &String, body: &String) -> Vec<Chapter> {
                 .unwrap()
                 .replace("\"", "")
                 .trim()
+                .replace("&#x2019;", "'")
                 .to_owned();
             let index;
             if z.contains("data-orderno=") {

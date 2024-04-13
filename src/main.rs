@@ -64,7 +64,7 @@ async fn main() {
 
     let cover_url = get_cover_url(&main_body);
 
-    let mut image_file = std::fs::File::create("./res/cover.jpg").unwrap();
+    let mut image_file = std::fs::File::create("./res/src/cover.jpg").unwrap();
 
     let image_data = reqwest::get(cover_url).await.unwrap().bytes();
     let _ = image_file.write_all(&image_data.await.unwrap());
@@ -146,10 +146,18 @@ async fn main() {
         HumanDuration(start.elapsed())
     ));
 
-    let _ = tokio::fs::File::create("./res/src/book.toml").await;
+    let _ = tokio::fs::File::create("./res/book.toml").await;
     tokio::fs::write(
-        "./res/src/book.toml",
-        format!("title = \"{}\" \n cover-image = \"cover.jpg\"", title),
+        "./res/book.toml",
+        format!(
+            "
+[book]
+title = \"{}\"
+[output.epub]
+cover-image = \"cover.jpg\"
+",
+            title
+        ),
     )
     .await
     .unwrap();

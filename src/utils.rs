@@ -15,13 +15,17 @@ pub async fn download_html(url: &String) -> String {
     };
 }
 
-pub fn get_title(html: &String) -> &str {
-    let in_tag = get_substring_between(&html, "<title>", "</title>").unwrap_or_default();
+pub fn get_title(html: &String) -> String {
+    let in_tag = get_substring_between(&html, "<title>", "</title>")
+        .unwrap_or_default()
+        .replace("&#x27;", "'")
+        .replace(" - Top Novel Updates", "")
+        .replace(" - Web Novel Pub", "");
     if in_tag.contains("|") {
         let end = in_tag.find("|").unwrap_or_default();
-        return &in_tag[..end].trim();
+        return in_tag[..end].trim().to_owned();
     } else {
-        return &in_tag.trim();
+        return in_tag.trim().to_owned();
     }
 }
 
