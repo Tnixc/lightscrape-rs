@@ -1,12 +1,11 @@
 use core::panic;
 use indicatif::{ProgressBar, ProgressStyle};
-use mdbook::renderer::RenderContext;
-use mdbook::MDBook;
+use mdbook::{renderer::RenderContext, MDBook};
 use mdbook_epub::errors::Error;
 use regex::Regex;
-use std::path::PathBuf;
-use std::time::Duration;
-use std::usize;
+use std::{path::PathBuf, time::Duration, usize};
+use tokio::fs;
+
 pub async fn download_html(url: &String) -> String {
     let req = reqwest::get(url).await;
     let res = match req {
@@ -87,10 +86,10 @@ pub async fn generate_epub(title: &String, keep_src: usize) -> () {
     let _ = generate_epub_runner(&title).await;
     let _ = generate_epub_runner(&title).await;
 
-    let _ = tokio::fs::remove_file("./res/book.toml").await;
+    let _ = fs::remove_file("./res/book.toml").await;
 
     if keep_src == 0 {
-        let _ = tokio::fs::remove_dir_all("./res/src").await;
+        let _ = fs::remove_dir_all("./res/src").await;
     }
 
     spinner.finish_with_message("Epub compiled!");
@@ -110,7 +109,7 @@ pub async fn generate_epub_runner(title: &String) -> Result<(), Error> {
         book_dir.clone(),
     );
 
-    let _ = tokio::fs::write(
+    let _ = fs::write(
         "./res/book.toml",
         "
 [output.epub]

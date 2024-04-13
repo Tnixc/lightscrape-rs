@@ -1,11 +1,12 @@
 use crate::utils::*;
 use futures::future::*;
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
-
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::time::Duration;
-use std::time::Instant;
+use std::{
+    fs::OpenOptions,
+    io::Write,
+    time::{Duration, Instant},
+};
+use tokio::fs;
 
 pub fn get_read_now_link(html: &String, url: &String) -> String {
     let line: String = html
@@ -80,7 +81,7 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
             ]),
     );
 
-    let _ = tokio::fs::File::create("./res/src/SUMMARY.md").await;
+    let _ = fs::File::create("./res/src/SUMMARY.md").await;
     let mut summary_file = OpenOptions::new()
         .append(true)
         .open("./res/src/SUMMARY.md")
@@ -108,8 +109,8 @@ fn recurse(url: String, i: i32, spinner: ProgressBar) -> BoxFuture<'static, i32>
         }
         let path = "./res/src/".to_string() + i.to_string().as_str() + ".md";
         let content = parse_content(body);
-        let _ = tokio::fs::File::create(&path).await;
-        let _ = tokio::fs::write(
+        let _ = fs::File::create(&path).await;
+        let _ = fs::write(
             &path,
             "# ".to_string() + title.as_str() + "\n \n" + content.as_str(),
         )

@@ -1,24 +1,23 @@
 mod async_mode;
 mod sync_mode;
 mod utils;
+
 use async_mode::*;
-use console::style;
-use console::Term;
-use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Input, Select};
+use console::{style, Term};
+use dialoguer::{theme::ColorfulTheme, Input, Select};
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
 use signal_hook::{consts::SIGINT, iterator::Signals};
-use std::fs;
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::path::Path;
-use std::thread;
-use std::thread::sleep;
-use std::time::Duration;
-use std::time::Instant;
+use std::{
+    fs,
+    fs::OpenOptions,
+    io::Write,
+    path::Path,
+    thread,
+    thread::sleep,
+    time::{Duration, Instant},
+};
 use sync_mode::*;
-use tokio::sync::mpsc;
-use tokio::task;
+use tokio::{sync::mpsc, task};
 use utils::*;
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 8)]
