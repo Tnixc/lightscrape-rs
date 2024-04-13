@@ -1,10 +1,10 @@
 use core::panic;
-use std::usize;
 use mdbook::renderer::RenderContext;
 use mdbook::MDBook;
 use mdbook_epub::errors::Error;
 use regex::Regex;
 use std::path::PathBuf;
+use std::usize;
 pub async fn download_html(url: &String) -> String {
     let req = reqwest::get(url).await;
     let res = match req {
@@ -66,7 +66,7 @@ pub fn get_cover_url(html: &str) -> String {
 pub async fn generate_epub(title: &String, keep_src: usize) -> () {
     //TODO: I have no idea why I need to run this twice to get the cover working.
     // Please help! 😭
-    
+
     let _ = generate_epub_runner(&title).await;
     let _ = generate_epub_runner(&title).await;
 
@@ -75,7 +75,6 @@ pub async fn generate_epub(title: &String, keep_src: usize) -> () {
     if keep_src == 0 {
         let _ = tokio::fs::remove_dir_all("./res/src").await;
     }
-
 }
 pub async fn generate_epub_runner(title: &String) -> Result<(), Error> {
     let book_dir = PathBuf::from("./res/");

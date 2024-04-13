@@ -48,7 +48,6 @@ async fn main() {
         .interact()
         .unwrap();
 
-
     let modes = vec![style("No"), style("Yes")];
     let keep_src = Select::with_theme(&ColorfulTheme::default())
         .with_prompt(style("Keep source files? (.md)").bold().to_string())
