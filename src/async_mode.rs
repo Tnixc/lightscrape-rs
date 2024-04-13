@@ -150,7 +150,7 @@ pub async fn get_contents_list(url: &String) -> Vec<Chapter> {
 
     spinner.finish_with_message(format!(
         "Downloaded {} content pages in {}",
-        index,
+        index - 1,
         HumanDuration(started.elapsed())
     ));
 

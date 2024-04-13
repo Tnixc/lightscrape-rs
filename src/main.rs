@@ -25,10 +25,10 @@ async fn main() {
     let term = Term::stdout();
     let _ = term.clear_screen();
 
-    let mode = vec![style("Async(Recommended)"), style("Sync")];
+    let modes = vec![style("Async(Recommended)"), style("Sync")];
     let selection = Select::with_theme(&ColorfulTheme::default())
         .with_prompt(style("Choose a mode").bold().to_string())
-        .items(&mode)
+        .items(&modes)
         .default(0)
         .interact()
         .unwrap();
@@ -45,6 +45,15 @@ async fn main() {
                 Err(style("Link doesn't start with https://").red().to_string())
             }
         })
+        .interact()
+        .unwrap();
+
+
+    let modes = vec![style("No"), style("Yes")];
+    let keep_src = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt(style("Keep source files? (.md)").bold().to_string())
+        .items(&modes)
+        .default(0)
         .interact()
         .unwrap();
 
@@ -68,8 +77,8 @@ async fn main() {
 
     if selection == 1 {
         sync_main(&main_url, &main_body).await;
-        let _ = generate_epub(title.clone());
-        // let _ = tokio::fs::remove_dir_all("./res/src/src").await;
+
+        let _ = generate_epub(&title, keep_src).await;
 
         println!(
             "{}",
@@ -152,7 +161,9 @@ async fn main() {
         counta,
         HumanDuration(start.elapsed())
     ));
-    let _ = generate_epub(title.clone());
+
+    let _ = generate_epub(&title, keep_src).await;
+
     println!(
         "{}",
         style(format!("\n Epub compiled at ./res/{}.epub", title))

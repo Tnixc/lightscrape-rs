@@ -1,12 +1,10 @@
 use core::panic;
+use std::usize;
 use mdbook::renderer::RenderContext;
 use mdbook::MDBook;
 use mdbook_epub::errors::Error;
-use mdbook_epub::generate;
-use std::path::PathBuf;
-
 use regex::Regex;
-
+use std::path::PathBuf;
 pub async fn download_html(url: &String) -> String {
     let req = reqwest::get(url).await;
     let res = match req {
@@ -65,13 +63,27 @@ pub fn get_cover_url(html: &str) -> String {
     let url = get_substring_between(line, "data-src=", "alt").unwrap_or_default();
     return url.replace("\"", "").trim().to_string();
 }
+pub async fn generate_epub(title: &String, keep_src: usize) -> () {
+    //TODO: I have no idea why I need to run this twice to get the cover working.
+    // Please help! 😭
+    
+    let _ = generate_epub_runner(&title).await;
+    let _ = generate_epub_runner(&title).await;
 
-pub fn generate_epub(title: String) -> Result<(), Error> {
+    let _ = tokio::fs::remove_file("./res/book.toml").await;
+
+    if keep_src == 0 {
+        let _ = tokio::fs::remove_dir_all("./res/src").await;
+    }
+
+}
+pub async fn generate_epub_runner(title: &String) -> Result<(), Error> {
     let book_dir = PathBuf::from("./res/");
 
     let book = MDBook::load(&book_dir).unwrap();
     let mut config = book.config.clone();
-    config.book.title = Some(title);
+
+    config.book.title = Some(title.to_owned());
 
     let ctx = RenderContext::new(
         book.root.clone(),
@@ -80,13 +92,16 @@ pub fn generate_epub(title: String) -> Result<(), Error> {
         book_dir.clone(),
     );
 
-    let test = mdbook_epub::Config {
-        cover_image: Some(PathBuf::from("./res/cover.jpg")),
-        ..Default::default()
-    };
+    let _ = tokio::fs::write(
+        "./res/book.toml",
+        "
+[output.epub]
+cover-image = \"cover.jpg\"
+",
+    )
+    .await;
 
-    let z = mdbook_epub::Config::from_render_context(&ctx);
+    let _ = mdbook_epub::generate(&ctx);
 
-    println!("EPUB generated");
     Ok(())
 }
