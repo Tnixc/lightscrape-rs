@@ -16,5 +16,6 @@ mdbook = "0.4.37"
 mdbook-epub = "0.4.37"
 regex = "1.10.4"
 reqwest = "0.11"
+signal-hook = "0.3.17"
 tokio = { version = "1.37.0", features = ["full"] }
 

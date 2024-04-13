@@ -22,6 +22,7 @@ pub fn get_title(html: &String) -> String {
     let in_tag = get_substring_between(&html, "<title>", "</title>")
         .unwrap_or_default()
         .replace("&#x27;", "'")
+        .replace("&#x2019;", "'")
         .replace(" - Top Novel Updates", "")
         .replace(" - Web Novel Pub", "");
     if in_tag.contains("|") {

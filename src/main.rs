@@ -1,17 +1,18 @@
 mod async_mode;
 mod sync_mode;
 mod utils;
-
 use async_mode::*;
 use console::style;
 use console::Term;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Input, Select};
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
+use signal_hook::{consts::SIGINT, iterator::Signals};
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
+use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
@@ -24,6 +25,15 @@ use utils::*;
 async fn main() {
     let term = Term::stdout();
     let _ = term.clear_screen();
+
+    let mut signals = Signals::new(&[SIGINT]).unwrap();
+
+    thread::spawn(move || {
+        for sig in signals.forever() {
+            println!(" Received interrupt signal {:?}", sig);
+            std::process::exit(0);
+        }
+    });
 
     let modes = vec![style("Async(Recommended)"), style("Sync")];
     let selection = Select::with_theme(&ColorfulTheme::default())
