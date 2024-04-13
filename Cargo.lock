@@ -1229,7 +1229,6 @@ dependencies = [
  "mdbook-epub",
  "regex",
  "reqwest",
- "tempfile",
  "tokio",
 ]
 

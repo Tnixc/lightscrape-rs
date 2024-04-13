@@ -15,7 +15,6 @@ indicatif = "0.17.8"
 mdbook = "0.4.37"
 mdbook-epub = "0.4.37"
 regex = "1.10.4"
-reqwest = { version = "0.11", features = ["blocking"] }
-tempfile = "3.10.1"
+reqwest = "0.11"
 tokio = { version = "1.37.0", features = ["full"] }
 

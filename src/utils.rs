@@ -1,8 +1,8 @@
 use core::panic;
 use mdbook::renderer::RenderContext;
 use mdbook::MDBook;
-use mdbook_epub;
 use mdbook_epub::errors::Error;
+use mdbook_epub::generate;
 use std::path::PathBuf;
 
 use regex::Regex;
@@ -80,7 +80,13 @@ pub fn generate_epub(title: String) -> Result<(), Error> {
         book_dir.clone(),
     );
 
-    let _ = mdbook_epub::generate(&ctx)?;
+    let test = mdbook_epub::Config {
+        cover_image: Some(PathBuf::from("./res/cover.jpg")),
+        ..Default::default()
+    };
+
+    let z = mdbook_epub::Config::from_render_context(&ctx);
+
     println!("EPUB generated");
     Ok(())
 }
