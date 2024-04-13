@@ -16,3 +16,9 @@ cargo install --git https://github.com/Tnixc/lightscrape-rs
 | [webnovelpub.co](https://webnovelpub.co) | **Yes**      |
 | [webnoveworld.org](https://www.webnovelworld.org)| **Yes**  | 
 | [lightnovelpub.vip](https://lightnovelpub.vip)| **Yes** |
+
+# Features
+
+- [x] Retries download after small delay if site responds with busy
+- [x] Async download or chapter by chapter download
+- [x] Sources cover image and attaches it to epub
