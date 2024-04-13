@@ -58,9 +58,6 @@ async fn main() {
     if !Path::new("./res/src").exists() {
         let _ = fs::create_dir("./res/src");
     }
-    if !Path::new("./res/src/book").exists() {
-        let _ = fs::create_dir("./res/book");
-    }
 
     let cover_url = get_cover_url(&main_body);
 
@@ -71,8 +68,8 @@ async fn main() {
 
     if selection == 1 {
         sync_main(&main_url, &main_body).await;
-        generate_epub();
-        // println!("EPUB generated: {:?}", output_file);
+        let _ = generate_epub(title);
+        let _ = tokio::fs::remove_dir_all("./res/src/src").await;
         return;
     }
 
@@ -148,5 +145,4 @@ async fn main() {
         counta,
         HumanDuration(start.elapsed())
     ));
-
 }

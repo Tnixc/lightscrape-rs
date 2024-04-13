@@ -88,11 +88,8 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
 
     let i = recurse(chapter_1_url, 1, spinner).await;
     for z in 0..i {
-        let _ = summary_file.write(format!("- [Chapter {}](./src/{}.md)\n", z, z).as_bytes());
+        let _ = summary_file.write(format!("- [Chapter {}](./{}.md)\n", z + 1, z + 1).as_bytes());
     }
-
-    // TODO: I quite literally have no idea what is going on here.
-    let _ = tokio::fs::remove_dir("./res/src/src").await;
 
     let duration = started.elapsed();
     let human_readable = HumanDuration(duration);

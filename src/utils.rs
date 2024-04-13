@@ -1,19 +1,9 @@
 use core::panic;
-
-use std::env;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::sync::Once;
-
-use epub::doc::EpubDoc;
 use mdbook::renderer::RenderContext;
 use mdbook::MDBook;
-use tempfile::TempDir;
-
 use mdbook_epub;
 use mdbook_epub::errors::Error;
+use std::path::PathBuf;
 
 use regex::Regex;
 
@@ -76,19 +66,22 @@ pub fn get_cover_url(html: &str) -> String {
     return url.replace("\"", "").trim().to_string();
 }
 
-pub fn generate_epub() -> Result<(), Error> {
+pub fn generate_epub(title: String) -> Result<(), Error> {
     let book_dir = PathBuf::from("./res/");
-    let book = MDBook::load(&book_dir)?;
+
+    let book = MDBook::load(&book_dir).unwrap();
+    let mut config = book.config.clone();
+    config.book.title = Some(title);
+    config.book.src = PathBuf::from("./res/src");
 
     let ctx = RenderContext::new(
         book.root.clone(),
         book.book.clone(),
-        book.config.clone(),
+        config,
         book_dir.clone(),
     );
 
-    let hi = mdbook_epub::generate(&ctx)?;
-
+    let _ = mdbook_epub::generate(&ctx)?;
     println!("EPUB generated");
     Ok(())
 }
