@@ -13,14 +13,9 @@ pub struct Chapter {
 
 pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> () {
     let body = &download_html(&chapter.link).await;
-    let path = "./res/".to_string()
-        + "["
-        + (counta + 1).to_string().as_str()
-        + "] "
-        + &chapter.title
-        + ".md";
+    let path = "./res/src/".to_string() + (counta + 1).to_string().as_str() + ".md";
     let _ = tokio::fs::File::create(&path).await;
-    let _ = tokio::fs::write(&path, parse_content(body)).await;
+    let _ = tokio::fs::write(&path, chapter.title + "\n" + parse_content(body).as_str()).await;
     tx.send(counta.clone()).await.unwrap();
     return;
 }

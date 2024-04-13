@@ -80,10 +80,10 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
             ]),
     );
 
-    let _ = tokio::fs::File::create("./res/SUMMARY.md").await;
+    let _ = tokio::fs::File::create("./res/src/SUMMARY.md").await;
     let summary_file = OpenOptions::new()
         .append(true)
-        .open("./res/SUMMARY.md")
+        .open("./res/src/SUMMARY.md")
         .unwrap();
 
     recurse(chapter_1_url, 1, spinner, summary_file).await;
@@ -107,7 +107,7 @@ fn recurse(
             spinner.finish_with_message(format!("Finished downloading {} chapters", i));
             return i;
         }
-        let path = "./res/".to_string() + i.to_string().as_str() + ".md";
+        let path = "./".to_string() + i.to_string().as_str() + ".md";
         let _ = tokio::fs::File::create(&path).await;
         let _ = tokio::fs::write(&path, parse_content(body)).await;
 

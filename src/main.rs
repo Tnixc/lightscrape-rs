@@ -9,6 +9,7 @@ use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Input, Select};
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
 use std::fs;
+use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 use std::thread::sleep;
@@ -50,13 +51,21 @@ async fn main() {
     let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
     println!("Title: {:?}", title);
+
     if !Path::new("./res").exists() {
         let _ = fs::create_dir("./res");
+    }
+    if !Path::new("./res/src").exists() {
+        let _ = fs::create_dir("./res/src");
+    }
+    if !Path::new("./res/src/book").exists() {
+        let _ = fs::create_dir("./res/book");
     }
 
     let cover_url = get_cover_url(&main_body);
 
-    let mut image_file = std::fs::File::create("cover.jpg").unwrap();
+    let mut image_file = std::fs::File::create("./res/cover.jpg").unwrap();
+
     let image_data = reqwest::get(cover_url).await.unwrap().bytes();
     let _ = image_file.write_all(&image_data.await.unwrap());
 
@@ -111,10 +120,21 @@ async fn main() {
         HumanDuration(start.elapsed())
     ));
 
+    let _ = tokio::fs::File::create("./res/src/SUMMARY.md").await;
+
+    let mut summary_file = OpenOptions::new()
+        .append(true)
+        .open("./res/src/SUMMARY.md")
+        .unwrap();
     for _ in 0..counta {
         let this = rx.recv().await.unwrap();
         results.set_message(format!("Finished task for chapter {}", this));
         results.inc(1);
+    }
+    for i in 0..counta {
+        summary_file
+            .write(format!("- [Chapter {}](./{}.md)\n", i + 1, i + 1).as_bytes())
+            .unwrap();
     }
 
     futures::future::join_all(handles).await;
@@ -124,5 +144,13 @@ async fn main() {
         "Finished {} download tasks in {}",
         counta,
         HumanDuration(start.elapsed())
-    ))
+    ));
+
+    let _ = tokio::fs::File::create("./res/src/book.toml").await;
+    tokio::fs::write(
+        "./res/src/book.toml",
+        format!("title = \"{}\" \n cover-image = \"cover.jpg\"", title),
+    )
+    .await
+    .unwrap();
 }
