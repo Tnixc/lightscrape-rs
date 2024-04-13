@@ -145,4 +145,6 @@ async fn main() {
         counta,
         HumanDuration(start.elapsed())
     ));
+    let _ = generate_epub(title.clone());
+    println!("{}", style(format!("Epub compiled at ./res/{}.epub", title)).green().bold())
 }

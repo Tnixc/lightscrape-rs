@@ -72,7 +72,6 @@ pub fn generate_epub(title: String) -> Result<(), Error> {
     let book = MDBook::load(&book_dir).unwrap();
     let mut config = book.config.clone();
     config.book.title = Some(title);
-    config.book.src = PathBuf::from("./res/src");
 
     let ctx = RenderContext::new(
         book.root.clone(),
