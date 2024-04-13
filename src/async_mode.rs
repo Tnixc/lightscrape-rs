@@ -13,12 +13,7 @@ pub struct Chapter {
 
 pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> () {
     let body = &download_html(&chapter.link).await;
-    let path;
-    if chapter.index == "" {
-        path = "./res/".to_string() + &chapter.title + ".md";
-    } else {
-        path = "./res/".to_string() + "[" + &chapter.index + "] " + &chapter.title + ".md";
-    }
+    let path = "./res/".to_string() + "[" + counta.to_string().as_str() + "] " + &chapter.title + ".md";
     let _ = tokio::fs::File::create(&path).await;
     let _ = tokio::fs::write(&path, parse_content(body)).await;
     tx.send(counta.clone()).await.unwrap();
