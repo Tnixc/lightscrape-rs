@@ -22,3 +22,9 @@ cargo install --git https://github.com/Tnixc/lightscrape-rs
 - [x] Retries download after small delay if site responds with busy
 - [x] Async download or chapter by chapter download
 - [x] Sources cover image and attaches it to epub
+
+# Credits
+- Uses [mdbook-epub](https://github.com/Michael-F-Bryan/mdbook-epub) for epub writing
+
+---
+This is a more feature complete rust rewrite of [lightscrape](https://github.com/tnixc/lightscrape) which I wrote in typescript a few months ago.
