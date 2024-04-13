@@ -1,9 +1,11 @@
 use core::panic;
+use indicatif::{ProgressBar, ProgressStyle};
 use mdbook::renderer::RenderContext;
 use mdbook::MDBook;
 use mdbook_epub::errors::Error;
 use regex::Regex;
 use std::path::PathBuf;
+use std::time::Duration;
 use std::usize;
 pub async fn download_html(url: &String) -> String {
     let req = reqwest::get(url).await;
@@ -68,6 +70,20 @@ pub async fn generate_epub(title: &String, keep_src: usize) -> () {
     //TODO: I have no idea why I need to run this twice to get the cover working.
     // Please help! 😭
 
+    let spinner = ProgressBar::new_spinner();
+
+    spinner.enable_steady_tick(Duration::from_millis(80));
+    spinner.set_style(
+        ProgressStyle::with_template("[{elapsed_precise}] {spinner:.green} {msg}")
+            .unwrap()
+            .tick_strings(&[
+                "[    ]", "[=   ]", "[==  ]", "[=== ]", "[====]", "[ ===]", "[  ==]", "[   =]",
+                "[    ]", "[   =]", "[  ==]", "[ ===]", "[====]", "[=== ]", "[==  ]", "[=   ]",
+                "[-==-]",
+            ]),
+    );
+
+    spinner.set_message("Writing to epub...");
     let _ = generate_epub_runner(&title).await;
     let _ = generate_epub_runner(&title).await;
 
@@ -76,6 +92,8 @@ pub async fn generate_epub(title: &String, keep_src: usize) -> () {
     if keep_src == 0 {
         let _ = tokio::fs::remove_dir_all("./res/src").await;
     }
+
+    spinner.finish_with_message("Epub compiled!");
 }
 pub async fn generate_epub_runner(title: &String) -> Result<(), Error> {
     let book_dir = PathBuf::from("./res/");

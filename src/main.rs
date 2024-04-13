@@ -68,7 +68,8 @@ async fn main() {
 
     let main_body = download_html(&main_url).await;
     let title = get_title(&main_body);
-    println!("Title: {:?}", title);
+
+    println!("{}", style(format!("\nTitle: {}", title)).blue().bold());
 
     if !Path::new("./res").exists() {
         let _ = fs::create_dir("./res");
