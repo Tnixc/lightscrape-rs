@@ -1,6 +1,6 @@
 # Lightscrape-rs
 
-This is a cli that downloads books from websites like lightnovelpub and compiles them into an epub. You should use this with a vpn.
+This is a cli that asynchronously downloads books from websites like lightnovelpub and compiles them into an epub. You should use this with a vpn.
 
 # Install
 ```sh
