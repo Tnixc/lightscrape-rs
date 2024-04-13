@@ -3,6 +3,7 @@ use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
 use std::time::Duration;
 use std::time::Instant;
 use tokio::sync::mpsc;
+use tokio::time::sleep;
 
 #[derive(Debug)]
 pub struct Chapter {
@@ -15,7 +16,21 @@ pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> ()
     let body = &download_html(&chapter.link).await;
     let path = "./res/src/".to_string() + (counta + 1).to_string().as_str() + ".md";
     let _ = tokio::fs::File::create(&path).await;
-    let _ = tokio::fs::write(&path, chapter.title + "\n" + parse_content(body).as_str()).await;
+    let mut content = parse_content(body);
+    loop {
+        if content.contains("All of our servers are busy right now") {
+            sleep(Duration::from_millis(100)).await;
+            content = parse_content(&download_html(&chapter.link).await);
+        } else {
+            break;
+        }
+    }
+
+    let _ = tokio::fs::write(
+        &path,
+        "# ".to_string() + chapter.title.as_str() + "\n \n" + content.as_str(),
+    )
+    .await;
     tx.send(counta.clone()).await.unwrap();
     return;
 }

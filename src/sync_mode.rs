@@ -101,6 +101,7 @@ fn recurse(
 ) -> BoxFuture<'static, i32> {
     async move {
         let body = &download_html(&url.to_string()).await;
+        let title = get_title(body);
         let next = get_next_link(body, &url.to_string());
         spinner.set_message(format!("Downloading chapter {}", i));
         if next.is_empty() {
@@ -108,8 +109,13 @@ fn recurse(
             return i;
         }
         let path = "./".to_string() + i.to_string().as_str() + ".md";
+        let content = parse_content(body);
         let _ = tokio::fs::File::create(&path).await;
-        let _ = tokio::fs::write(&path, parse_content(body)).await;
+        let _ = tokio::fs::write(
+            &path,
+            "# ".to_string() + title.as_str() + "\n \n" + content.as_str(),
+        )
+        .await;
 
         summary_file
             .write(format!("- [Chapter {}]({})\n", i, path).as_bytes())
