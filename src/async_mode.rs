@@ -13,7 +13,12 @@ pub struct Chapter {
 
 pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> () {
     let body = &download_html(&chapter.link).await;
-    let path = "./res/".to_string() + "[" + counta.to_string().as_str() + "] " + &chapter.title + ".md";
+    let path = "./res/".to_string()
+        + "["
+        + (counta + 1).to_string().as_str()
+        + "] "
+        + &chapter.title
+        + ".md";
     let _ = tokio::fs::File::create(&path).await;
     let _ = tokio::fs::write(&path, parse_content(body)).await;
     tx.send(counta.clone()).await.unwrap();
@@ -21,8 +26,7 @@ pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> ()
 }
 
 pub async fn get_page_links(url: &String, body: &String) -> Vec<Chapter> {
-    let res = body;
-    let reduced = get_substring_between(&res, "<ul class=\"chapter-list\">", "</ul>").unwrap();
+    let reduced = get_substring_between(&body, "<ul class=\"chapter-list\">", "</ul>").unwrap();
     let mut n: Vec<Chapter> = reduced
         .split("</li>")
         .into_iter()
@@ -88,12 +92,11 @@ pub fn get_contents_link(html: &str, url: &str) -> String {
 
 pub async fn get_contents_list(url: &String) -> Vec<Chapter> {
     let mut index = 2;
-    let mut vec = Vec::new();
     let mut vec_of_body = Vec::new();
-    vec.push(url.clone());
 
     let started = Instant::now();
     let spinner = ProgressBar::new_spinner();
+
     spinner.enable_steady_tick(Duration::from_millis(80));
     spinner.set_style(
         ProgressStyle::with_template("[{elapsed_precise}] {spinner:.yellow} {msg}")
@@ -104,7 +107,11 @@ pub async fn get_contents_list(url: &String) -> Vec<Chapter> {
                 "[-==-]",
             ]),
     );
+
     spinner.set_message(format!("Downloading page {}", (index - 1).to_string()));
+
+    // Page 1
+    vec_of_body.push(download_html(url).await);
 
     loop {
         let next_url = url.clone() + "?page=" + index.to_string().as_str();
@@ -117,22 +124,24 @@ pub async fn get_contents_list(url: &String) -> Vec<Chapter> {
         {
             break;
         }
-        vec.push(next_url);
+
         vec_of_body.push(res);
 
         spinner.set_message(format!("Downloading page {}", index.to_string()));
         index += 1;
     }
-    spinner.finish_with_message(format!(
-        "Downloaded {} content pages in {}",
-        index,
-        HumanDuration(started.elapsed())
-    ));
 
     let mut final_list: Vec<Chapter> = Vec::new();
 
     for page_body in vec_of_body.iter() {
         final_list.append(&mut get_page_links(url, page_body).await);
     }
+
+    spinner.finish_with_message(format!(
+        "Downloaded {} content pages in {}",
+        index,
+        HumanDuration(started.elapsed())
+    ));
+
     return final_list;
 }

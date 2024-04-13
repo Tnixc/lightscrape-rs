@@ -66,6 +66,7 @@ async fn main() {
     }
 
     let contents_url_1 = get_contents_link(&main_body, &main_url);
+
     let final_list: Vec<Chapter> = get_contents_list(&contents_url_1).await;
 
     let bar = ProgressBar::new(final_list.len() as u64);
@@ -87,6 +88,7 @@ async fn main() {
 
     let mut handles = Vec::new();
     let mut counta: u64 = 0;
+
     let (tx, mut rx) = mpsc::channel::<u64>(final_list.len());
 
     for z in final_list.into_iter() {
