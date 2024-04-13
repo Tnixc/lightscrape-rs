@@ -1,6 +1,9 @@
 use crate::utils::*;
 use futures::future::*;
 use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -65,9 +68,9 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
     let chapter_1_url = get_read_now_link(&main_body, &main_url);
 
     let started = Instant::now();
-    let pb = ProgressBar::new_spinner();
-    pb.enable_steady_tick(Duration::from_millis(80));
-    pb.set_style(
+    let spinner = ProgressBar::new_spinner();
+    spinner.enable_steady_tick(Duration::from_millis(80));
+    spinner.set_style(
         ProgressStyle::with_template("[{elapsed_precise}] {spinner:.blue} {msg}")
             .unwrap()
             .tick_strings(&[
@@ -77,27 +80,42 @@ pub async fn sync_main(main_url: &String, main_body: &String) -> () {
             ]),
     );
 
-    recurse(chapter_1_url, 1, pb).await;
+    let _ = tokio::fs::File::create("./res/SUMMARY.md").await;
+    let summary_file = OpenOptions::new()
+        .append(true)
+        .open("./res/SUMMARY.md")
+        .unwrap();
+
+    recurse(chapter_1_url, 1, spinner, summary_file).await;
 
     let duration = started.elapsed();
     let human_readable = HumanDuration(duration);
     println!("Took {}", human_readable);
 }
 
-fn recurse(url: String, i: i32, pb: ProgressBar) -> BoxFuture<'static, i32> {
+fn recurse(
+    url: String,
+    i: i32,
+    spinner: ProgressBar,
+    mut summary_file: File,
+) -> BoxFuture<'static, i32> {
     async move {
         let body = &download_html(&url.to_string()).await;
         let next = get_next_link(body, &url.to_string());
-        pb.set_message(format!("Downloading chapter {}", i));
+        spinner.set_message(format!("Downloading chapter {}", i));
         if next.is_empty() {
-            pb.finish_with_message(format!("Finished downloading {} chapters", i));
+            spinner.finish_with_message(format!("Finished downloading {} chapters", i));
             return i;
         }
-        let path = "./res/".to_string() + "[" + i.to_string().as_str() + "] " + ".md";
+        let path = "./res/".to_string() + i.to_string().as_str() + ".md";
         let _ = tokio::fs::File::create(&path).await;
         let _ = tokio::fs::write(&path, parse_content(body)).await;
 
-        return recurse(next, i + 1, pb).await;
+        summary_file
+            .write(format!("- [Chapter {}]({})\n", i, path).as_bytes())
+            .expect("write failed");
+
+        return recurse(next, i + 1, spinner, summary_file).await;
     }
     .boxed()
 }

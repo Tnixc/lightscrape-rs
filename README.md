@@ -1,6 +1,7 @@
 
 # To-do:
 
+- [ ] proper chapter title parsing for sync mode
 - [ ] epub writing
 - [x] Flags for sync/async, rate limit
 - [x] More graceful ui
