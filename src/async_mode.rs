@@ -26,7 +26,7 @@ pub async fn worker(chapter: Chapter, tx: mpsc::Sender<u64>, counta: &u64) -> ()
 
     let _ = fs::write(
         &path,
-        "# ".to_string() + chapter.title.as_str() + "\n \n" + content.as_str(),
+        content.as_str(),
     )
     .await;
     tx.send(counta.clone()).await.unwrap();
